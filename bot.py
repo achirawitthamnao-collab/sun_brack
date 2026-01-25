@@ -3,9 +3,9 @@ from discord.ext import commands
 import os
 from dotenv import load_dotenv
 
-from myserver import server_on
-load_dotenv()
+from myserver import server_on  # ต้องมีไฟล์นี้จริง
 
+load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 intents = discord.Intents.default()
@@ -42,6 +42,7 @@ async def on_message(message):
 
     elif len(content) > 59:
         await message.channel.send(f"ยาวจัง {message.author.mention}")
+
     elif content == "สัส":
         await message.channel.send(f"อะไรน่ะสุดหล่อ สัสเลยหรอ {message.author.mention}")
         await message.delete()
@@ -51,11 +52,14 @@ async def on_message(message):
 
     elif content in ["ใช่", "ช่าย"]:
         await message.channel.send(f"โอเค {message.author.mention}")
-    elif content in ["ค"]:
-        await message.channel.send(f"ย่อได้ดีแต่ฉันรู้น่ะว่าจะพิมพ์อะไรตัดเวท {message.author.mention}")
+
+    elif content == "ค":
+        await message.channel.send(
+            f"ย่อได้ดีแต่ฉันรู้นะว่าจะพิมพ์อะไร {message.author.mention}"
+        )
         await message.delete()
 
     await bot.process_commands(message)
 
-erver_on()
+server_on()        # ✅ แก้ชื่อถูกแล้ว
 bot.run(TOKEN)
