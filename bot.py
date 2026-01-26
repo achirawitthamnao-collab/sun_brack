@@ -52,7 +52,7 @@ async def on_message(message):
             return
 
     # ===== คำทักทาย =====
-    if content.startswith("สวัสด"):
+    if content.startswith("สวัสดี"):
         await message.channel.send(f"สวัสดี {message.author.mention}")
 
     elif content in ["ดี", "ดีจ้า", "ดีครับ", "ดีค่ะ"]:
@@ -97,11 +97,13 @@ async def on_message(message):
         await message.channel.send(f"เราเองๆ เป็นแสงสว่างทร่ามกลางความมืด! {message.author.mention}")
     elif content.startswith("ค"):
         await message.channel.send(f"หยุดน่ะ {message.author.mention}")
-        await message.delete()
+        await message.delete)
     elif content.startswith("คว"):
         await message.channel.send(f"หยุดน่ะ {message.author.mention}")
         await message.delete()
-        
+    elif content in ["ส", "สว", "สวั", "สวัส","สวัสด"]:
+        await message.channel.send(f"สวัสดีใช่ไหม {message.author.mention}")
+    
     
 
     # ถ้าไม่เข้าเงื่อนไข → เงียบ
@@ -110,6 +112,7 @@ async def on_message(message):
 
 server_on()
 bot.run(TOKEN)
+
 
 
 
