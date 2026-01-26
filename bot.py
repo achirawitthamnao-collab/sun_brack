@@ -87,6 +87,15 @@ async def on_message(message):
 
     elif "ฝันดี" in content or "นอน" in content:
         await message.channel.send(f"ฝันดีนะ {message.author.mention}")
+    elif "ฮึ่ย" in content:
+        await message.channel.send(f"เป็นอะไรหรอ {message.author.mention}")
+    elif "เปล่า" in content or "ป่าว" in content:
+        await message.channel.send(f"ดีแล้วที่ไม่เป็นไร {message.author.mention}")
+    elif "ยาว" in content:
+        await message.channel.send(f"หมายถึงกาแกงทัวร์ พันนิสเชอร์สิน่ะ {message.author.mention}")
+    elif "sun" in content:
+        await message.channel.send(f"เราเองๆ เป็นแสงสว่างทร่ามกลางความมืด! {message.author.mention}")
+    
 
     # ถ้าไม่เข้าเงื่อนไข → เงียบ
     else:
@@ -94,6 +103,7 @@ async def on_message(message):
 
 server_on()
 bot.run(TOKEN)
+
 
 
 
