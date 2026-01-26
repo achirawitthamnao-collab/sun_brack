@@ -42,7 +42,7 @@ async def on_message(message):
             return
 
     # คำทักทาย
-    if content == "สวัสดี":
+    if content in ["สวัสดี","ดี"]:
         await message.channel.send(f"สวัสดี {message.author.mention}")
 
     elif content in ["hi", "hello"]:
@@ -51,7 +51,7 @@ async def on_message(message):
     elif content in ["ส", "สว", "สวั", "สวัส", "สวัสด"]:
         await message.channel.send(f"สวัสดีใช่ไหม {message.author.mention}")
 
-    elif content == "อะไรล่ะนั่น":
+    elif content == "ไร":
         await message.channel.send(f"ไม่รู้เหมือนกัน {message.author.mention}")
 
     elif content == "สัส":
@@ -76,3 +76,4 @@ server_on()
 
 # รันบอท
 bot.run(TOKEN)
+
