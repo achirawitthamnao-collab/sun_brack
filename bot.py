@@ -40,9 +40,8 @@ async def on_message(message):
     elif content == "อะไรล่ะนั่น":
         await message.channel.send(f"ไม่รู้เหมือนกัน {message.author.mention}")
 
-    elif len(content) > 59:
-        await message.channel.send(f"ยาวจัง {message.author.mention}")
-
+    elif content == "hi" || content =="hello" ||  content == "Hi" || content =="Hello" || content =="HI" || content =="HELLO":
+        await message.channel.send(f"hello {message.author.mention}")
     elif content == "สัส":
         await message.channel.send(f"อะไรน่ะสุดหล่อ สัสเลยหรอ {message.author.mention}")
         await message.delete()
@@ -63,3 +62,4 @@ async def on_message(message):
 
 server_on()        # ✅ แก้ชื่อถูกแล้ว
 bot.run(TOKEN)
+
