@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 
 from myserver import server_on
 
+# ================== SETUP ==================
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
@@ -14,20 +15,23 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+# ================== คำหยาบ ==================
 bad_words = [
     "ควย", "เหี้ย", "สันดาน", "หี",
     "หรรม", "หำ", "โง่", "กาก", "กระจอก"
 ]
 
+# ================== ฟังก์ชันทำความสะอาดข้อความ ==================
 def clean_text(text: str) -> str:
     text = text.lower()
     text = re.sub(r"\s+", "", text)            # ลบช่องว่าง
-    text = re.sub(r"[^ก-๙a-z0-9]", "", text)   # ลบตัวอักษรแปลก
+    text = re.sub(r"[^ก-๙a-z0-9]", "", text)   # ลบอักขระแปลก
     return text
 
+# ================== EVENT ==================
 @bot.event
 async def on_ready():
-    print("ok")
+    print("Bot is ready!")
 
 @bot.event
 async def on_message(message):
@@ -39,7 +43,7 @@ async def on_message(message):
     raw = message.content
     content = clean_text(raw)
 
-    # ตรวจคำหยาบ
+    # ===== ตรวจคำหยาบ =====
     for word in bad_words:
         if word in content:
             try:
@@ -51,7 +55,7 @@ async def on_message(message):
             )
             return
 
-    # ===== คำทักทาย =====
+    # ===== คำทัก / คำตอบ =====
     if content.startswith("สวัสดี"):
         await message.channel.send(f"สวัสดี {message.author.mention}")
 
@@ -87,34 +91,30 @@ async def on_message(message):
 
     elif "ฝันดี" in content or "นอน" in content:
         await message.channel.send(f"ฝันดีนะ {message.author.mention}")
+
     elif "ฮึ่ย" in content:
         await message.channel.send(f"เป็นอะไรหรอ {message.author.mention}")
+
     elif "เปล่า" in content or "ป่าว" in content:
         await message.channel.send(f"ดีแล้วที่ไม่เป็นไร {message.author.mention}")
-    elif "ยาว" in content:
-        await message.channel.send(f"หมายถึงกาแกงทัวร์ พันนิสเชอร์สิน่ะ {message.author.mention}")
-    elif "sun" in content:
-        await message.channel.send(f"เราเองๆ เป็นแสงสว่างทร่ามกลางความมืด! {message.author.mention}")
-    elif content.startswith("ค"):
-        await message.channel.send(f"หยุดน่ะ {message.author.mention}")
-        await message.delete)
-    elif content.startswith("คว"):
-        await message.channel.send(f"หยุดน่ะ {message.author.mention}")
-        await message.delete()
-    elif content in ["ส", "สว", "สวั", "สวัส","สวัสด"]:
-        await message.channel.send(f"สวัสดีใช่ไหม {message.author.mention}")
-    
-    
 
-    # ถ้าไม่เข้าเงื่อนไข → เงียบ
+    elif "ยาว" in content:
+        await message.channel.send(
+            f"หมายถึงกาแกงทัวร์ พันนิสเชอร์สิน่ะ {message.author.mention}"
+        )
+
+    elif "sun" in content:
+        await message.channel.send(
+            f"เราเองๆ เป็นแสงสว่างท่ามกลางความมืด! {message.author.mention}"
+        )
+
+    elif content in ["ส", "สว", "สวั", "สวัส", "สวัสด"]:
+        await message.channel.send(f"สวัสดีใช่ไหม {message.author.mention}")
+
     else:
         await message.channel.send(f"ไม่เข้าใจแฮะ {message.author.mention}")
 
+# ================== RUN ==================
 server_on()
 bot.run(TOKEN)
-
-
-
-
-
-
+    
