@@ -95,6 +95,13 @@ async def on_message(message):
         await message.channel.send(f"หมายถึงกาแกงทัวร์ พันนิสเชอร์สิน่ะ {message.author.mention}")
     elif "sun" in content:
         await message.channel.send(f"เราเองๆ เป็นแสงสว่างทร่ามกลางความมืด! {message.author.mention}")
+    elif content.startswith("ค"):
+        await message.channel.send(f"หยุดน่ะ {message.author.mention}")
+        await message.delete()
+    elif content.startswith("คว"):
+        await message.channel.send(f"หยุดน่ะ {message.author.mention}")
+        await message.delete()
+        
     
 
     # ถ้าไม่เข้าเงื่อนไข → เงียบ
@@ -103,6 +110,7 @@ async def on_message(message):
 
 server_on()
 bot.run(TOKEN)
+
 
 
 
