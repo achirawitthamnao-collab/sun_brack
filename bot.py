@@ -90,9 +90,10 @@ async def on_message(message):
 
     # ถ้าไม่เข้าเงื่อนไข → เงียบ
     else:
-        return
+        await message.channel.send(f"ไม่เข้าใจแฮะ {message.author.mention}")
 
 server_on()
 bot.run(TOKEN)
+
 
 
