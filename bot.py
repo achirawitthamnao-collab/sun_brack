@@ -113,7 +113,7 @@ async def on_message(message):
         await message.channel.send(f"ได้แน่นอนสิ {message.author.mention}")
     elif "ทำ" in content:
         await message.channel.send(f"จัดมาเลย {message.author.mention}")
-    elif "<:cry:1449182139105939507>" in content:
+    elif "cry" in content:
         await message.channel.send(f"จะร้องทัมมาย {message.author.mention}")
         
     else:
@@ -125,3 +125,4 @@ async def on_message(message):
 
 server_on()
 bot.run(TOKEN)
+
