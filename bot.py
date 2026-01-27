@@ -110,7 +110,7 @@ async def on_message(message):
 
     elif content in ["ส", "สว", "สวั", "สวัส", "สวัสด"]:
         await message.channel.send(f"สวัสดีใช่ไหม {message.author.mention}")
-    elif content in ["ค","คว"]:
+    elif content in ["ค","คว"] in content:
         await message.delete()
         await message.channel.send(f"ไม่ได้ๆ {message.author.mention}")
 
@@ -121,4 +121,5 @@ async def on_message(message):
 server_on()
 bot.run(TOKEN)
     
+
 
