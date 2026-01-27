@@ -113,7 +113,7 @@ async def on_message(message):
             pass
         await message.channel.send(f"ไม่ได้ๆ {message.author.mention}")
     else:
-        await message.channel.send(f"ไม่เข้าใจ {message.author.mention}")
+        await message.channel.send(f"ไม่เข้าใจแฮะ {message.author.mention}")
 
     # ให้คำสั่ง bot ทำงานได้
     await bot.process_commands(message)
@@ -121,3 +121,4 @@ async def on_message(message):
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
