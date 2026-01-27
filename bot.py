@@ -115,6 +115,8 @@ async def on_message(message):
         await message.channel.send(f"จัดมาเลย {message.author.mention}")
     elif "cry" in content:
         await message.channel.send(f"จะร้องทัมมาย {message.author.mention}")
+    elif "emoji_62" in content:
+        await message.channel.send(f"มีไรหรอเปล่า {message.author.mention}")
         
     else:
         await message.channel.send(f"ไม่เข้าใจแฮะ {message.author.mention}")
@@ -125,4 +127,5 @@ async def on_message(message):
 
 server_on()
 bot.run(TOKEN)
+
 
