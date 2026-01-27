@@ -6,44 +6,44 @@ from dotenv import load_dotenv
 
 from myserver import server_on
 
-
+# ===== LOAD ENV =====
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
+# ===== INTENTS =====
 intents = discord.Intents.default()
 intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-
+# ===== BAD WORDS =====
 bad_words = [
     "ควย", "เหี้ย", "สันดาน", "หี",
     "หรรม", "หำ", "โง่", "กาก", "กระจอก"
 ]
 
-
+# ===== CLEAN TEXT =====
 def clean_text(text: str) -> str:
     text = text.lower()
     text = re.sub(r"\s+", "", text)            # ลบช่องว่าง
     text = re.sub(r"[^ก-๙a-z0-9]", "", text)   # ลบอักขระแปลก
     return text
 
-
+# ===== READY =====
 @bot.event
 async def on_ready():
     print("Bot is ready!")
 
+# ===== MESSAGE EVENT =====
 @bot.event
 async def on_message(message):
     if message.author.bot:
         return
 
-    await bot.process_commands(message)
-
     raw = message.content
     content = clean_text(raw)
 
-   
+    # ---------- FILTER BAD WORD ----------
     for word in bad_words:
         if word in content:
             try:
@@ -55,7 +55,7 @@ async def on_message(message):
             )
             return
 
-    
+    # ---------- RESPONSES ----------
     if content.startswith("สวัสดี"):
         await message.channel.send(f"สวัสดี {message.author.mention}")
 
@@ -98,11 +98,6 @@ async def on_message(message):
     elif "เปล่า" in content or "ป่าว" in content:
         await message.channel.send(f"ดีแล้วที่ไม่เป็นไร {message.author.mention}")
 
-    elif "ยาว" in content:
-        await message.channel.send(
-            f"หมายถึงกาแกงทัวร์ พันนิสเชอร์สิน่ะ {message.author.mention}"
-        )
-
     elif "sun" in content:
         await message.channel.send(
             f"เราเองๆ เป็นแสงสว่างท่ามกลางความมืด! {message.author.mention}"
@@ -110,16 +105,19 @@ async def on_message(message):
 
     elif content in ["ส", "สว", "สวั", "สวัส", "สวัสด"]:
         await message.channel.send(f"สวัสดีใช่ไหม {message.author.mention}")
-    elif content in ["ค","คว"] in content:
-        await message.delete()
+
+    elif content.startswith(("ค", "คว")):
+        try:
+            await message.delete()
+        except:
+            pass
         await message.channel.send(f"ไม่ได้ๆ {message.author.mention}")
-
     else:
-        await message.channel.send(f"ไม่เข้าใจแฮะ {message.author.mention}")
+        await message.channel.send(f"ไม่เข้าใจ {message.author.mention}")
 
-# ================== RUN ==================
+    # ให้คำสั่ง bot ทำงานได้
+    await bot.process_commands(message)
+
+# ===== RUN =====
 server_on()
 bot.run(TOKEN)
-    
-
-
