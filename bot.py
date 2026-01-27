@@ -105,13 +105,10 @@ async def on_message(message):
 
     elif content in ["ส", "สว", "สวั", "สวัส", "สวัสด"]:
         await message.channel.send(f"สวัสดีใช่ไหม {message.author.mention}")
+    elif "ฮ" in content:
+        await message.channel.send(f"ฮะอะไรน่ะ {message.author.mention}")
 
-    elif content.startswith(("ค", "คว")):
-        try:
-            await message.delete()
-        except:
-            pass
-        await message.channel.send(f"ไม่ได้ๆ {message.author.mention}")
+    
     else:
         await message.channel.send(f"ไม่เข้าใจแฮะ {message.author.mention}")
 
@@ -121,4 +118,5 @@ async def on_message(message):
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
 
