@@ -81,6 +81,10 @@ async def on_message(message):
 
     elif "ไม่รู้" in content:
         await message.channel.send(f"ทำไมไม่รู้ {message.author.mention}")
+    elif "ไง" in content:
+        await message.channel.send(f"ทำอ่าวว่าไง {message.author.mention}")
+    elif "หัวเราะทำไม" in content:
+        await message.channel.send(f"ขอโทษทีๆ {message.author.mention}")
 
     elif "ใครคือsun" in content or "sunคือใคร" in content:
         await message.channel.send(f"เราไง {message.author.mention}")
@@ -214,6 +218,7 @@ fclose($f);
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
 
 
 
