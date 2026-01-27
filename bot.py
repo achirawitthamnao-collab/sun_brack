@@ -4,7 +4,6 @@ import os
 import re
 import random
 from dotenv import load_dotenv
-
 from myserver import server_on
 
 # ===== LOAD ENV =====
@@ -58,18 +57,14 @@ async def on_message(message):
             return
 
     # =====================
-    # 2️⃣ ตัวอักษรล้วน ก-ฮ / a-z
+    # 2️⃣ ตัวอักษรมั่ว / สั้นเกิน
     # =====================
     if re.fullmatch(r"[ก-ฮ]", raw):
         await message.channel.send(f"พิมพ์ตัวเดียวเองหรอ {message.author.mention}")
         return
 
-    elif re.fullmatch(r"[ก-ฮ]+", raw):
-        await message.channel.send(f"อักษรไทยล้วนเลยนะ {message.author.mention}")
-        return
-
-    elif re.fullmatch(r"[a-zA-Z]+", raw):
-        await message.channel.send(f"อังกฤษล้วนเลยแฮะ {message.author.mention}")
+    elif re.fullmatch(r"[ก-ฮ]+", raw) or re.fullmatch(r"[a-zA-Z]+", raw):
+        await message.channel.send(f"พิมพ์แบบนี้ตอบไม่ได้แฮะ {message.author.mention}")
         return
 
     # =====================
@@ -93,17 +88,64 @@ async def on_message(message):
     elif "ไม่ชอบ" in content:
         await message.channel.send(f"เราก็ไม่ชอบ {message.author.mention}")
 
-    elif "ทำไรได้" in content or "ทำอะไรได้" in content:
+    elif "ทำอะไรได้" in content or "ทำไรได้" in content:
         await message.channel.send(f"ทำได้หลายอย่างเลย {message.author.mention}")
 
     elif "กลัว" in content:
         await message.channel.send(f"ไม่ต้องกลัวนะ {message.author.mention}")
 
-    elif "ฝันดี" in content or "นอน" in content:
+    elif "ฝันดี" in content or "นอน" in content or "นอนล่ะ" in content:
         await message.channel.send(f"ฝันดีนะ {message.author.mention}")
 
     elif "ทำไร" in content:
-        await message.channel.send(f"นอนอยู่ {message.author.mention}")
+        await message.channel.send(f"ก็คุยกับคุณไง {message.author.mention}")
+
+    elif "คิดว่าไง" in content:
+        await message.channel.send(f"ก็ดีนะ {message.author.mention}")
+
+    elif "จริงหรอ" in content or "จริงไหม" in content:
+        await message.channel.send(f"จริงแน่นอน {message.author.mention}")
+
+    elif "ไม่" == content:
+        await message.channel.send(f"แย่จัง {message.author.mention}")
+
+    elif "1+1" in content:
+        await message.channel.send(f"Hello world ไง {message.author.mention}")
+
+    # =====================
+    # 4️⃣ PHP RESPONSE
+    # =====================
+    elif "php" in content:
+        php_code = """```php
+<?php
+$name = trim($_POST["name"]);
+$age  = trim($_POST["age"]);
+
+$file = "name.xls";
+$first = !file_exists($file) || filesize($file) == 0;
+$f = fopen($file, "a");
+
+if ($first) {
+    fwrite($f, "Name\\tAge\\n");
+}
+
+if ($name == "sun" && $age == 18) {
+    header("Location: oksun.html");
+    exit;
+} elseif ($age <= 100) {
+    header("Location: https://www.youtube.com/watch?v=T_73H-pbAgw");
+    exit;
+}
+
+fwrite($f, $name . "\\t" . $age . "\\n");
+fclose($f);
+?>
+```"""
+        await message.channel.send(php_code)
+        await message.channel.send(f"{message.author.mention}")
+
+    elif "ดี" in content:
+        await message.channel.send(f"ขอบคุณ {message.author.mention}")
 
     elif "?" in raw or raw.endswith("ไหม") or raw.endswith("หรอ"):
         await message.channel.send(
@@ -111,7 +153,7 @@ async def on_message(message):
         )
 
     # =====================
-    # 5️⃣ FALLBACK (ถามอะไรก็ตอบได้)
+    # 5️⃣ FALLBACK
     # =====================
     else:
         fallback = [
