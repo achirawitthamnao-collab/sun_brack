@@ -156,6 +156,35 @@ fclose($f);
 ```"""
         await message.channel.send(php_code)
         await message.channel.send(message.author.mention)
+    elif "html" in content:
+        html_code = """```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <form method="post" action="data.php">
+        <label for="name">name</label>
+        <br>
+        <input type="text" name="name">
+        <br>
+        <label for="age">age</label>
+        <br>
+        <input type="number" name="age">
+        <br>
+        <button type="submit">x</button>
+    </form>
+</body>
+
+</html>
+```"""
+        await message.channel.send(html_code)
+        await message.channel.send(message.author.mention)
 
     elif "ดี" in content:
         await message.channel.send(f"ขอบคุณ {message.author.mention}")
@@ -185,5 +214,6 @@ fclose($f);
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
 
 
