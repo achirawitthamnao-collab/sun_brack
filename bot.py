@@ -57,7 +57,7 @@ async def on_message(message):
             return
 
     # =====================
-    # 2️⃣ ตัวอักษรมั่ว / สั้นเกิน
+    # 2️⃣ ตัวอักษรมั่ว
     # =====================
     if re.fullmatch(r"[ก-ฮ]", raw):
         await message.channel.send(f"พิมพ์ตัวเดียวเองหรอ {message.author.mention}")
@@ -106,21 +106,17 @@ async def on_message(message):
     elif "จริงหรอ" in content or "จริงไหม" in content:
         await message.channel.send(f"จริงแน่นอน {message.author.mention}")
 
-    elif "ไม่" == content:
+    elif content == "ไม่":
         await message.channel.send(f"แย่จัง {message.author.mention}")
 
     elif "1+1" in content:
         await message.channel.send(f"Hello world ไง {message.author.mention}")
+
     elif "เค" in content:
         await message.channel.send(f"โอเคร {message.author.mention}")
-    elif "?" in content:
+
+    elif "?" in raw:
         await message.channel.send(f"งงอะไรหรอ {message.author.mention}")
-    elif "emoji_74" in content:
-        await message.channel.send(f"หาวเลยหรอ {message.author.mention}")
-    elif "ทำอาไย" in content:
-        await message.channel.send(f"อยู่คุยกับคุณไง {message.author.mention}")
-    elif "kuttoyaki_11" in content:
-        await message.channel.send(f"งงอารายย {message.author.mention}")
 
     # =====================
     # 4️⃣ PHP RESPONSE
@@ -152,15 +148,13 @@ fclose($f);
 ?>
 ```"""
         await message.channel.send(php_code)
-        await message.channel.send(f"{message.author.mention}")
+        await message.channel.send(message.author.mention)
 
     elif "ดี" in content:
         await message.channel.send(f"ขอบคุณ {message.author.mention}")
+
     elif "หรอ" in content:
         await message.channel.send(f"ใช่ {message.author.mention}")
-
-        )
-    
 
     # =====================
     # 5️⃣ FALLBACK
@@ -184,4 +178,3 @@ fclose($f);
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
-
