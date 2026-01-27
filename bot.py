@@ -117,6 +117,9 @@ async def on_message(message):
 
     elif "?" in raw:
         await message.channel.send(f"งงอะไรหรอ {message.author.mention}")
+    elif "เป็นไง" in raw:
+        await message.channel.send(f"สบายดี {message.author.mention}")
+    
 
     # =====================
     # 4️⃣ PHP RESPONSE
@@ -178,3 +181,4 @@ fclose($f);
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
