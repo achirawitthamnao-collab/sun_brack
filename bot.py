@@ -13,7 +13,6 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 # ===== INTENTS =====
 intents = discord.Intents.default()
 intents.message_content = True
-
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # ===== BAD WORDS =====
@@ -25,14 +24,31 @@ bad_words = [
 # ===== CLEAN TEXT =====
 def clean_text(text: str) -> str:
     text = text.lower()
-    text = re.sub(r"\s+", "", text)            # ลบช่องว่าง
-    text = re.sub(r"[^ก-๙a-z0-9]", "", text)   # ลบอักขระแปลก
+    text = re.sub(r"\s+", "", text)
+    text = re.sub(r"[^ก-๙a-z0-9]", "", text)
     return text
 
-# ===== READY =====
+# ===== BOT READY =====
 @bot.event
 async def on_ready():
     print("Bot is ready!")
+
+# ===== RESPONSES (INTENT SYSTEM) =====
+responses = [
+    {"keys": ["สวัสดี", "สวัดดี", "hello", "hi"], "reply": "สวัสดีจ้า"},
+    {"keys": ["ดี", "ดีจ้า", "ดีครับ", "ดีค่ะ"], "reply": "ดีจ้า"},
+    {"keys": ["ไม่รู้"], "reply": "ทำไมถึงไม่รู้ล่ะ"},
+    {"keys": ["ใครคือsun", "sunคือใคร"], "reply": "เราเองไง 😆"},
+    {"keys": ["คิดเหมือน"], "reply": "ใช่เลย คิดเหมือนกัน"},
+    {"keys": ["ไม่ชอบ", "เกลียด"], "reply": "เราก็ไม่ค่อยชอบเหมือนกัน"},
+    {"keys": ["ทำอะไรได้", "ทำไรได้"], "reply": "ทำได้หลายอย่างเลยนะ"},
+    {"keys": ["กลัว"], "reply": "ไม่ต้องกลัวนะ เราอยู่นี่"},
+    {"keys": ["ฝันดี", "นอน", "นอนล่ะ", "จะนอน"], "reply": "ฝันดีนะ 😴"},
+    {"keys": ["ฮึ่ย", "เฮ้อ"], "reply": "เป็นอะไรหรือเปล่า"},
+    {"keys": ["เปล่า", "ป่าว"], "reply": "โอเค โล่งใจไปที"},
+    {"keys": ["ทำไร", "ทำอะไร"], "reply": "กำลังนั่งคุยอยู่นี่แหละ"},
+    {"keys": ["sun"], "reply": "เราเอง ๆ แสงสว่างท่ามกลางความมืด ✨"}
+]
 
 # ===== MESSAGE EVENT =====
 @bot.event
@@ -43,7 +59,7 @@ async def on_message(message):
     raw = message.content
     content = clean_text(raw)
 
-    # ---------- FILTER BAD WORD ----------
+    # ----- FILTER BAD WORD -----
     for word in bad_words:
         if word in content:
             try:
@@ -55,68 +71,28 @@ async def on_message(message):
             )
             return
 
-    # ---------- RESPONSES ----------
-    if content.startswith("สวัสดี"):
-        await message.channel.send(f"สวัสดี {message.author.mention}")
+    # ----- AUTO RESPONSE -----
+    answered = False
 
-    elif content in ["ดี", "ดีจ้า", "ดีครับ", "ดีค่ะ"]:
-        await message.channel.send(f"ดีจ้า {message.author.mention}")
+    for item in responses:
+        for key in item["keys"]:
+            if key in content:
+                await message.channel.send(
+                    f"{item['reply']} {message.author.mention}"
+                )
+                answered = True
+                break
+        if answered:
+            break
 
-    elif content in ["hi", "hello"]:
-        await message.channel.send(f"hello {message.author.mention}")
-
-    elif content in ["ไร", "อะไร"]:
-        await message.channel.send(f"ไม่รู้เหมือนกัน {message.author.mention}")
-
-    elif "ไม่รู้" in content:
-        await message.channel.send(f"ทำไมไม่รู้ {message.author.mention}")
-
-    elif "ใครคือsun" in content:
-        await message.channel.send(f"เราไง {message.author.mention}")
-
-    elif "คิดเหมือน" in content:
-        await message.channel.send(f"ใช่ คิดเหมือนกัน {message.author.mention}")
-
-    elif "ไม่ชอบ" in content:
-        await message.channel.send(f"เราก็ไม่ชอบ {message.author.mention}")
-
-    elif "ทำไรได้" in content or "ทำอะไรได้" in content:
-        await message.channel.send(f"ทำได้หลายอย่างเลย {message.author.mention}")
-
-    elif "กลัว" in content:
-        await message.channel.send(f"ไม่ต้องกลัวนะ {message.author.mention}")
-
-    elif content in ["ใจ", "จัย"]:
-        await message.channel.send(f"ไม่สนใจแล้ว {message.author.mention}")
-
-    elif "ฝันดี" in content or "นอน" in content:
-        await message.channel.send(f"ฝันดีนะ {message.author.mention}")
-
-    elif "ฮึ่ย" in content:
-        await message.channel.send(f"เป็นอะไรหรอ {message.author.mention}")
-
-    elif "เปล่า" in content or "ป่าว" in content:
-        await message.channel.send(f"ดีแล้วที่ไม่เป็นไร {message.author.mention}")
-
-    elif "sun" in content:
+    # ----- FALLBACK -----
+    if not answered:
         await message.channel.send(
-            f"เราเองๆ เป็นแสงสว่างท่ามกลางความมืด! {message.author.mention}"
+            f"เรายังไม่ค่อยเข้าใจ แต่เล่าต่อได้นะ {message.author.mention}"
         )
 
-    elif content in ["ส", "สว", "สวั", "สวัส", "สวัสด"]:
-        await message.channel.send(f"สวัสดีใช่ไหม {message.author.mention}")
-    elif "ฮ" in content:
-        await message.channel.send(f"ฮะอะไรน่ะ {message.author.mention}")
-
-    
-    else:
-        await message.channel.send(f"ไม่เข้าใจแฮะ {message.author.mention}")
-
-    # ให้คำสั่ง bot ทำงานได้
     await bot.process_commands(message)
 
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
-
-
