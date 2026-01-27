@@ -119,6 +119,10 @@ async def on_message(message):
         await message.channel.send(f"งงอะไรหรอ {message.author.mention}")
     elif "เป็นไง" in raw:
         await message.channel.send(f"สบายดี {message.author.mention}")
+    elif "เล่าอะไร" in raw:
+        await message.channel.send(f" งั้นไม่ต้องเล่ากะด้ายเพราะเราก็ไม่รู้ว่าจะให้เล่าอะไรเหมือนกาน{message.author.mention}")
+    elif "เข้าใจ" in content or "เข้าจัย" in content:
+        await message.channel.send(f"โอเครเข้าใจสิน่ะ {message.author.mention}")
     
 
     # =====================
@@ -181,4 +185,5 @@ fclose($f);
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
 
