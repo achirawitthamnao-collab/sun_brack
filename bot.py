@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 from myserver import server_on
 
-# ================== SETUP ==================
+
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
@@ -15,20 +15,20 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# ================== คำหยาบ ==================
+
 bad_words = [
     "ควย", "เหี้ย", "สันดาน", "หี",
     "หรรม", "หำ", "โง่", "กาก", "กระจอก"
 ]
 
-# ================== ฟังก์ชันทำความสะอาดข้อความ ==================
+
 def clean_text(text: str) -> str:
     text = text.lower()
     text = re.sub(r"\s+", "", text)            # ลบช่องว่าง
     text = re.sub(r"[^ก-๙a-z0-9]", "", text)   # ลบอักขระแปลก
     return text
 
-# ================== EVENT ==================
+
 @bot.event
 async def on_ready():
     print("Bot is ready!")
@@ -43,7 +43,7 @@ async def on_message(message):
     raw = message.content
     content = clean_text(raw)
 
-    # ===== ตรวจคำหยาบ =====
+   
     for word in bad_words:
         if word in content:
             try:
@@ -55,7 +55,7 @@ async def on_message(message):
             )
             return
 
-    # ===== คำทัก / คำตอบ =====
+    
     if content.startswith("สวัสดี"):
         await message.channel.send(f"สวัสดี {message.author.mention}")
 
@@ -110,6 +110,9 @@ async def on_message(message):
 
     elif content in ["ส", "สว", "สวั", "สวัส", "สวัสด"]:
         await message.channel.send(f"สวัสดีใช่ไหม {message.author.mention}")
+    elif content in ["ค","คว"]:
+        await message.delete()
+        await message.channel.send(f"ไม่ได้ๆ {message.author.mention}")
 
     else:
         await message.channel.send(f"ไม่เข้าใจแฮะ {message.author.mention}")
@@ -118,3 +121,4 @@ async def on_message(message):
 server_on()
 bot.run(TOKEN)
     
+
