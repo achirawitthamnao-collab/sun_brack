@@ -60,11 +60,11 @@ async def on_message(message):
     # 2️⃣ ตัวอักษรมั่ว
     # =====================
     if re.fullmatch(r"[ก-ฮ]", raw):
-        await message.channel.send(f"พิมพ์ตัวเดียวเองหรอ {message.author.mention}")
+        await message.channel.send(f"รอพิมพ์ให้ครบน่ะ {message.author.mention}")
         return
 
     elif re.fullmatch(r"[ก-ฮ]+", raw) or re.fullmatch(r"[a-zA-Z]+", raw):
-        await message.channel.send(f"พิมพ์แบบนี้ตอบไม่ได้แฮะ {message.author.mention}")
+        await message.channel.send(f"พิมพ์ไม่ครบหรอ {message.author.mention}")
         return
 
     # =====================
@@ -72,6 +72,8 @@ async def on_message(message):
     # =====================
     if content.startswith("สวัสดี"):
         await message.channel.send(f"สวัสดี {message.author.mention}")
+    elif content.startswith("ค"):
+        await message.delete()
     elif "@" in content:
         return
 
@@ -232,6 +234,7 @@ fclose($f);
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
 
 
 
