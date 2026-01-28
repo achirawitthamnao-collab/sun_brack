@@ -198,13 +198,36 @@ if ($name == "sun") {
     elif "html" in content or "โค้ด" in content:
         await message.channel.send("""```html
 <!DOCTYPE html>
-<html>
+<html lang="th">
+
 <head>
-    <title>Hello</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form</title>
+    <link rel="stylesheet" href="color.css">
 </head>
+
 <body>
-    <h1>Hello Sun</h1>
+    <form method="post" action="data.php">
+
+        <label for="name">ชื่อ</label>
+        <input type="text" id="name" name="name" required minlength="2">
+
+        <label for="age">อายุ</label>
+        <input type="number" id="age" name="age" required min="5">
+
+        <div>
+            <input type="radio" id="facebook" name="sex" value="facebook" required>
+            <label for="facebook">เฟส</label>
+
+            <input type="radio" id="line" name="sex" value="line">
+            <label for="line">ไลน์</label>
+        </div>
+
+        <button type="submit">ส่ง</button>
+    </form>
 </body>
+
 </html>
 ```""")
 
@@ -230,4 +253,5 @@ if ($name == "sun") {
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
 
