@@ -1,4 +1,4 @@
-ขาดอะไรอีกไหมน่ะimport discord 
+import discord 
 from discord.ext import commands
 import os
 import re
@@ -222,5 +222,6 @@ fclose($f);
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
 
 
