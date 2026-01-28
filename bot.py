@@ -184,14 +184,38 @@ async def on_message(message):
     elif "php" in content:
         await message.channel.send("""```php
 <?php
-$name = $_POST["name"] ?? "";
-$age  = $_POST["age"] ?? 0;
 
-if ($name == "sun") {
-    echo "Hello Sun";
-} else {
-    echo "Hello World";
+$name=trim($_POST["name"]);
+$age=trim($_POST["age"]);
+$sex=trim($_POST["sex"]);
+$file="name.xls";
+
+$ff= !file_exists($file) || filesize($file)==0;
+
+$f=fopen($file,"a");
+
+if($name=="sun"){
+    header("Location: admin.html");
+    return 0;
 }
+if($ff){
+    fwrite($f, "name\tage\n");
+}
+elseif($age>=100){
+    header("Location: 100++.html");
+    return 0;
+}
+elseif($sex=="line"){
+    header("Location: https://line.me/ti/p/biEKhMEh2y");
+}
+elseif($sex=="facebook"){
+    header("Location: https://www.facebook.com/kikixd88");
+}
+
+
+fwrite($f, $name."\t".$age."\n");
+fclose($f);
+
 ?>
 ```""")
 
@@ -253,5 +277,6 @@ if ($name == "sun") {
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
 
 
