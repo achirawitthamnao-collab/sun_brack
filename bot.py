@@ -2,8 +2,9 @@ import discord
 import os
 import google.generativeai as genai
 from dotenv import load_dotenv
+from myserver import server_on
 
-# โหลดตัวแปร (สำหรับรันในคอม แต่บน Render ไม่ได้ใช้บรรทัดนี้ก็ไม่เป็นไร)
+# โหลดตัวแปรสภาพแวดล้อม
 load_dotenv()
 
 # ตั้งค่า Discord
@@ -14,54 +15,55 @@ client = discord.Client(intents=intents)
 # ตั้งค่า Google Gemini
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
-# เช็คว่ามี Key ไหม (กันพลาด)
+# ตรวจสอบว่าใส่ Key หรือยัง
 if not GEMINI_API_KEY:
-    print("❌ ไม่พบ GEMINI_API_KEY ใน Environment!")
+    print("❌ Error: ไม่พบ GEMINI_API_KEY ใน Environment Variables")
 else:
     genai.configure(api_key=GEMINI_API_KEY)
 
-# *** ใช้ชื่อรุ่นที่ถูกต้อง ***
-model = genai.GenerativeModel('gemini-1.0-pro')
+# *** ใช้โมเดลรุ่น Flash (เร็วและฟรี) ***
+# ถ้า requirements.txt อัปเดตแล้ว บรรทัดนี้จะทำงานได้ 100%
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 @client.event
 async def on_ready():
     print(f'✅ Logged in as {client.user}')
+    print('Bot is ready to chat!')
 
 @client.event
 async def on_message(message):
+    # ไม่ตอบข้อความของตัวเอง
     if message.author == client.user:
         return
 
-    # เช็คว่าบอททำงานไหม
+    # เช็คสถานะบอทง่ายๆ
     if message.content.startswith('สวัสดี'):
-        await message.channel.send('สวัสดีครับ! พร้อมทำงานแล้ว 😎')
+        await message.channel.send('สวัสดีครับ! ผมพร้อมทำงานแล้วครับ 😎')
         return
 
-    # คุยกับ AI
+    # ส่วนการคุยกับ AI
     try:
+        # แสดงสถานะ "กำลังพิมพ์..."
         async with message.channel.typing():
             # ส่งข้อความไปหา Gemini
             response = model.generate_content(message.content)
             
-            # ตอบกลับ (ตัดข้อความถ้าเกิน 1900 ตัว)
+            # ตรวจสอบความยาวข้อความ (Discord รับได้ไม่เกิน 2000 ตัว)
             reply_text = response.text
             if len(reply_text) > 1900:
-                reply_text = reply_text[:1900] + "...(ยาวไปตัดจบ)"
+                reply_text = reply_text[:1900] + "\n...(ข้อความยาวเกินไป ขอตัดจบแค่นี้นะครับ)"
             
+            # ส่งคำตอบกลับไป
             await message.channel.send(reply_text)
 
     except Exception as e:
-        # ฟ้อง Error ในแชททันที
-        error_msg = f"❌ เกิดข้อผิดพลาด:\n```{str(e)}```"
+        # ถ้ามีปัญหา ให้แจ้งเตือนในแชททันที
+        error_msg = f"❌ เกิดข้อผิดพลาดครับนายท่าน:\n```{str(e)}```"
         await message.channel.send(error_msg)
         print(error_msg)
 
+# เปิด Server จำลองเพื่อให้ Render ไม่ปิดบอท
+server_on()
+
 # รันบอท
-# ใช้ server_on() ถ้าจำเป็นต้องเปิด web server หลอก Render (ในไฟล์ myserver.py)
-from myserver import server_on
-server_on() 
-
 client.run(os.getenv('DISCORD_TOKEN'))
-
-
-
