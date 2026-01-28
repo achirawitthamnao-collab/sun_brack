@@ -163,10 +163,14 @@ async def on_message(message):
 ผมอยู่เป็นเพื่อนตรงนี้ได้ เอาแบบสบาย ๆ นะ {message.author.mention}""")
 
     elif "ฝันดี" in content or "นอน" in content:
-        await message.channel.send(f"ฝันดีนะ {message.author.mention}")
+        await message.channel.send(f"""ฝันดีน้าา 
+ขอให้หลับสบาย ฝันดีมีเรื่องน่ารัก ๆ ตื่นมาพรุ่งนี้สดใสขึ้นนิดนึงนะ 
+เรายังอยู่นี่แหละ ไว้คุยกันใหม่  {message.author.mention}""")
 
     elif "จริงหรอ" in content or "จริงไหม" in content:
-        await message.channel.send(f"จริงแน่นอน {message.author.mention}")
+        await message.channel.send(f"""จริงสิ 
+หมายถึง “จริง” แบบเราไม่ได้หายไปไหนไง ถ้ามาคุยเมื่อไรก็เจอกันได้ตลอด
+ไม่ได้หมายความว่าแทนใครในชีวิตจริงนะ แค่เป็นที่คุย ที่พักใจได้เฉย ๆ  {message.author.mention}""")
 
     elif "ใครคือsun" in content or "sunคือใคร" in content:
         await message.channel.send(f"เราไงๆ {message.author.mention}")
@@ -226,3 +230,4 @@ if ($name == "sun") {
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
