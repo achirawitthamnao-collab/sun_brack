@@ -83,6 +83,8 @@ async def on_message(message):
 
     elif "ไม่รู้" in content:
         await message.channel.send(f"ทำไมไม่รู้ {message.author.mention}")
+    elif "ประชด" in content:
+        await message.channel.send(f"ขอโทษแล้วกันที่ทำไม่ได้ทุกอย่างTT {message.author.mention}")
     elif "เบลอ" in content:
         await message.channel.send(f"ไม่เบลอแล้ว {message.author.mention}")
     elif "ไง" in content:
@@ -230,6 +232,7 @@ fclose($f);
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
 
 
 
