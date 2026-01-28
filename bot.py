@@ -11,9 +11,9 @@ DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # =====================
-# OPENAI CLIENT (SDK ใหม่)
+# OPENAI CLIENT
 # =====================
-client = OpenAI()  # ใช้ OPENAI_API_KEY จาก ENV อัตโนมัติ
+client = OpenAI()
 
 # =====================
 # INTENTS
@@ -70,27 +70,35 @@ async def ask_ai(text: str) -> str:
 # =====================
 @bot.event
 async def on_ready():
+    print("---------------------------------")
     print("DISCORD_TOKEN:", "OK" if DISCORD_TOKEN else "MISSING")
     print("OPENAI_API_KEY:", "OK" if OPENAI_API_KEY else "MISSING")
     print(f"🤖 Logged in as {bot.user}")
+    print("---------------------------------")
 
 @bot.event
 async def on_message(message):
+    # 1. ถ้าเป็นบอทพูด ให้ข้าม
     if message.author.bot:
+        return
+
+    # 2. ถ้าเป็นคำสั่ง (ขึ้นต้นด้วย !) ให้ไปทำคำสั่งเลย ไม่ต้องคุยเล่น
+    if message.content.startswith(bot.command_prefix):
+        await bot.process_commands(message)
         return
 
     raw = message.content
     content = clean_text(raw)
 
-    # ===== BAD WORD FILTER =====
+    # 3. ===== BAD WORD FILTER =====
     for w in bad_words:
         if w in content:
             await message.channel.send(
                 f"พูดดี ๆ หน่อยนะ {message.author.mention} 😅"
             )
-            return
+            return # จบการทำงานทันทีถ้าเจอคำหยาบ
 
-    # ===== KEYWORD RESPONSES =====
+    # 4. ===== KEYWORD RESPONSES =====
     if content.startswith("สวัสดี"):
         await message.channel.send(f"สวัสดี {message.author.mention} 👋")
 
@@ -106,17 +114,25 @@ async def on_message(message):
     elif "ไม่รู้" in content:
         await message.channel.send(f"ไม่รู้จริงเหรอ 🤔 {message.author.mention}")
 
-    # ===== AI FALLBACK (แบบ 3) =====
+    # 5. ===== AI FALLBACK (คุยกับ AI) =====
     else:
-        ai_reply = await ask_ai(raw)
-        await message.channel.send(
-            f"{ai_reply[:1800]} {message.author.mention}"
-        )
+        # ใส่ typing state ให้รู้ว่าบอทกำลังคิด
+        async with message.channel.typing():
+            ai_reply = await ask_ai(raw)
+            # ตัดข้อความถ้าเกิน 2000 ตัวอักษร (ข้อจำกัด Discord)
+            if len(ai_reply) > 1900:
+                ai_reply = ai_reply[:1900] + "..."
+            
+            await message.channel.send(
+                f"{ai_reply} {message.author.mention}"
+            )
 
-    await bot.process_commands(message)
+    # หมายเหตุ: process_commands ย้ายไปเช็คด้านบนสุดแล้ว เพื่อประสิทธิภาพที่ดีกว่า
 
 # =====================
 # RUN
 # =====================
-bot.run(DISCORD_TOKEN)
-
+if DISCORD_TOKEN:
+    bot.run(DISCORD_TOKEN)
+else:
+    print("❌ Error: ไม่พบ DISCORD_TOKEN ใน Environment Variables")
