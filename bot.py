@@ -21,7 +21,7 @@ else:
     genai.configure(api_key=GEMINI_API_KEY)
 
 # *** ใช้ชื่อรุ่นที่ถูกต้อง ***
-model = genai.GenerativeModel('gemini-pro')
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 @client.event
 async def on_ready():
@@ -62,4 +62,5 @@ from myserver import server_on
 server_on() 
 
 client.run(os.getenv('DISCORD_TOKEN'))
+
 
