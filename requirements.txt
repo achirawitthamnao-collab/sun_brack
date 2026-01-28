@@ -1,4 +1,5 @@
 discord.py
-flask
-google-generativeai
 python-dotenv
+google-generativeai
+flask
+requests
