@@ -1,98 +1,226 @@
-# ไฟล์: bot.py
-import discord
+ขาดอะไรอีกไหมน่ะimport discord 
 from discord.ext import commands
 import os
 import re
 import random
 from dotenv import load_dotenv
-import google.generativeai as genai
-from myserver import server_on  # <--- เรียกใช้ไฟล์ server ที่เราสร้าง
+from myserver import server_on
 
 # ===== LOAD ENV =====
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
-# ===== SETUP AI (GEMINI) =====
-# ใช้ try-except เผื่อใครยังไม่ได้ใส่ Key จะได้ไม่แครช
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash')
-else:
-    print("⚠️ Warning: ไม่พบ GEMINI_API_KEY บอทจะตอบได้แค่คำถามทั่วไป")
-    model = None
-
-ai_persona = """
-คุณคือ "BotKub" (บอทครับ) เพื่อนคู่คิดใน Discord
-นิสัย: กวนตีนนิดๆ, เป็นกันเอง, ใช้ภาษาวัยรุ่น
-ความสามารถพิเศษ: เก่งการเขียนโปรแกรมมาก (Python, JS, C++)
-หน้าที่:
-1. ถ้าเขาถามเรื่องโค้ด: สอนแบบเข้าใจง่าย ยกตัวอย่างประกอบ
-2. ถ้าเขาคุยเล่น: คุยกลับแบบเพื่อนสนิท
-"""
 
 # ===== INTENTS =====
 intents = discord.Intents.default()
 intents.message_content = True
+
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# ===== DATA =====
-bad_words = ["ควย", "เหี้ย", "สันดาน", "หี", "หรรม", "หำ", "โง่", "กาก", "กระจอก"]
-
-brain = [
-    {"tags": ["ดีครับ", "สวัสดี", "หวัดดี", "hi", "hello"], "answers": ["โย่ววว ว่าไงวัยรุ่น", "ดีจ้า วันนี้เขียนโค้ดบ้างยัง?", "มาแล้วครับผม"]},
-    {"tags": ["ขอบคุณ", "thx", "แต้ง"], "answers": ["ไม่เป็นไร เพื่อนกัน", "เลี้ยงกาแฟแก้วนึงพอ", "ยินดีครับผม"]},
-    {"tags": ["555", "ตลก", "ขำ"], "answers": ["ขำไรอะ แบ่งมั่ง", "เส้นตื้นนะเรา", "555555"]},
-    {"tags": ["ชื่อไร", "ชื่ออะไร"], "answers": ["ชื่อ BotKub สุดหล่อไงครับ", "เรียกพี่บอทก็ได้น้อง"]}
+# ===== BAD WORDS =====
+bad_words = [
+    "ควย", "เหี้ย", "สันดาน", "หี",
+    "หรรม", "หำ", "โง่", "กาก", "กระจอก"
 ]
 
+# ===== CLEAN TEXT =====
 def clean_text(text: str) -> str:
     text = text.lower()
     text = re.sub(r"\s+", "", text)
     text = re.sub(r"[^ก-๙a-z0-9]", "", text)
     return text
 
-# ===== EVENTS =====
 @bot.event
 async def on_ready():
-    print(f"✅ Logged in as {bot.user}")
+    print(f"Bot ready as {bot.user}")
 
 @bot.event
 async def on_message(message):
     if message.author.bot:
         return
 
-    raw_content = message.content.strip()
-    clean_content = clean_text(raw_content)
+    raw = message.content.strip()
+    content = clean_text(raw)
 
-    # 1. เช็คคำหยาบ
-    if any(word in raw_content for word in bad_words):
-        try: await message.delete()
-        except: pass
-        await message.channel.send(f"{message.author.mention} อย่าหยาบคายดิครับ!", delete_after=5)
+    # =====================
+    # 1️⃣ BAD WORD CHECK
+    # =====================
+    for word in bad_words:
+        if word in content:
+            try:
+                await message.delete()
+            except:
+                pass
+            await message.channel.send(
+                f"{message.author.mention} ใช้คำสุภาพหน่อยน้า",
+                delete_after=5
+            )
+            return
+
+    # =====================
+    # 2️⃣ ตัวอักษรมั่ว
+    # =====================
+    if re.fullmatch(r"[ก-ฮ]", raw):
+        await message.channel.send(f"พิมพ์ตัวเดียวเองหรอ {message.author.mention}")
         return
 
-    # 2. เช็คสมองส่วนหน้า (คำตอบตายตัว)
-    for item in brain:
-        for tag in item["tags"]:
-            if tag in clean_content:
-                await message.channel.send(f"{random.choice(item['answers'])} {message.author.mention}")
-                return
+    elif re.fullmatch(r"[ก-ฮ]+", raw) or re.fullmatch(r"[a-zA-Z]+", raw):
+        await message.channel.send(f"พิมพ์แบบนี้ตอบไม่ได้แฮะ {message.author.mention}")
+        return
 
-    # 3. ส่งให้ AI (สอนโค้ด/คุยทั่วไป)
-    if model and len(raw_content) > 1:
-        async with message.channel.typing():
-            try:
-                prompt = f"{ai_persona}\n\nUser: {raw_content}"
-                response = model.generate_content(prompt)
-                await message.channel.send(response.text)
-            except Exception as e:
-                print(f"AI Error: {e}")
-                await message.channel.send("โทษที สมองเออเร่อนิดหน่อย ถามใหม่ซิ")
-                
+    # =====================
+    # 3️⃣ KEYWORDS
+    # =====================
+    if content.startswith("สวัสดี"):
+        await message.channel.send(f"สวัสดี {message.author.mention}")
+
+    elif content in ["ดี", "ดีจ้า", "ดีครับ", "ดีค่ะ"]:
+        await message.channel.send(f"ดีจ้า {message.author.mention}")
+
+    elif content in ["hi", "hello"]:
+        await message.channel.send(f"hello {message.author.mention}")
+
+    elif "ไม่รู้" in content:
+        await message.channel.send(f"ทำไมไม่รู้ {message.author.mention}")
+    elif "ไง" in content:
+        await message.channel.send(f"ว่าไง {message.author.mention}")
+    elif "คิดถึง" in content:
+        await message.channel.send(f"คิดถึง {message.author.mention}")
+    elif "หัวเราะทำไม" in content:
+        await message.channel.send(f"ขอโทษทีๆ {message.author.mention}")
+
+    elif "ใครคือsun" in content or "sunคือใคร" in content:
+        await message.channel.send(f"เราไง {message.author.mention}")
+
+    elif "ไม่ชอบ" in content:
+        await message.channel.send(f"เราก็ไม่ชอบ {message.author.mention}")
+
+    elif "ทำอะไรได้" in content or "ทำไรได้" in content:
+        await message.channel.send(f"ทำได้หลายอย่างเลย {message.author.mention}")
+
+    elif "กลัว" in content:
+        await message.channel.send(f"ไม่ต้องกลัวนะ {message.author.mention}")
+
+    elif "ฝันดี" in content or "นอน" in content or "นอนล่ะ" in content:
+        await message.channel.send(f"ฝันดีนะ {message.author.mention}")
+
+    elif "ทำไร" in content:
+        await message.channel.send(f"ก็คุยกับคุณไง {message.author.mention}")
+
+    elif "คิดว่าไง" in content:
+        await message.channel.send(f"ก็ดีนะ {message.author.mention}")
+
+    elif "จริงหรอ" in content or "จริงไหม" in content:
+        await message.channel.send(f"จริงแน่นอน {message.author.mention}")
+
+    elif content == "ไม่":
+        await message.channel.send(f"แย่จัง {message.author.mention}")
+
+    elif "1+1" in content:
+        await message.channel.send(f"Hello world ไง {message.author.mention}")
+
+    elif "เค" in content:
+        await message.channel.send(f"โอเคร {message.author.mention}")
+
+    elif "?" in raw:
+        await message.channel.send(f"งงอะไรหรอ {message.author.mention}")
+    elif "เป็นไง" in raw:
+        await message.channel.send(f"สบายดี {message.author.mention}")
+    elif "เล่าอะไร" in raw:
+        await message.channel.send(f" งั้นไม่ต้องเล่ากะด้ายเพราะเราก็ไม่รู้ว่าจะให้เล่าอะไรเหมือนกาน{message.author.mention}")
+    elif "เข้าใจ" in content or "เข้าจัย" in content:
+        await message.channel.send(f"โอเครเข้าใจสิน่ะ {message.author.mention}")
+    elif "อรุณสวัสดิ์" in content or "morning" in content:
+        await message.channel.send(f"อรุณสวัสดิ์ {message.author.mention}")
+    
+
+    # =====================
+    # 4️⃣ PHP RESPONSE
+    # =====================
+    elif "php" in content:
+        php_code = """```php
+<?php
+$name = trim($_POST["name"]);
+$age  = trim($_POST["age"]);
+
+$file = "name.xls";
+$first = !file_exists($file) || filesize($file) == 0;
+$f = fopen($file, "a");
+
+if ($first) {
+    fwrite($f, "Name\\tAge\\n");
+}
+
+if ($name == "sun" && $age == 18) {
+    header("Location: oksun.html");
+    exit;
+} elseif ($age <= 100) {
+    header("Location: https://www.youtube.com/watch?v=T_73H-pbAgw");
+    exit;
+}
+
+fwrite($f, $name . "\\t" . $age . "\\n");
+fclose($f);
+?>
+```"""
+        await message.channel.send(php_code)
+        await message.channel.send(message.author.mention)
+    elif "html" in content:
+        html_code = """```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <form method="post" action="data.php">
+        <label for="name">name</label>
+        <br>
+        <input type="text" name="name">
+        <br>
+        <label for="age">age</label>
+        <br>
+        <input type="number" name="age">
+        <br>
+        <button type="submit">x</button>
+    </form>
+</body>
+
+</html>
+```"""
+        await message.channel.send(html_code)
+        await message.channel.send(message.author.mention)
+
+    elif "ดี" in content:
+        await message.channel.send(f"ขอบคุณ {message.author.mention}")
+
+    elif "หรอ" in content:
+        await message.channel.send(f"ใช่ {message.author.mention}")
+
+    # =====================
+    # 5️⃣ FALLBACK
+    # =====================
+    else:
+        fallback = [
+            "อืมม 🤔",
+            "เล่าต่อสิ",
+            "น่าสนใจนะ",
+            "5555",
+            "โอเคเลย",
+            "ฟังอยู่นะ",
+            "เข้าใจละ"
+        ]
+        await message.channel.send(
+            f"{random.choice(fallback)} {message.author.mention}"
+        )
+
     await bot.process_commands(message)
 
-# ===== START =====
-if __name__ == "__main__":
-    server_on() # <--- เปิด Server หลอก Render
-    bot.run(TOKEN)
+# ===== RUN =====
+server_on()
+bot.run(TOKEN)
+
+
