@@ -5,10 +5,12 @@ app = Flask("")
 
 @app.route("/")
 def home():
-    return "Bot is running"
+    return "Bot is working! (Status: OK)"
 
 def run():
+    # ใช้ port 10000 ตามที่คุณตั้งไว้
     app.run(host="0.0.0.0", port=10000)
 
 def server_on():
-    Thread(target=run).start()
+    t = Thread(target=run)
+    t.start()
