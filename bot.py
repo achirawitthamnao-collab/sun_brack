@@ -2,28 +2,37 @@ import discord
 from discord.ext import commands
 import os
 import re
-from openai import OpenAI
+import google.generativeai as genai
 
-# 👇 นำเข้าฟังก์ชัน server_on จากไฟล์ myserver.py
+# 👇 เรียกใช้ฟังก์ชันเปิด Server จากไฟล์ myserver.py (เหมือนเดิม)
 from myserver import server_on
 
 # =====================
-# ENV FROM DASHBOARD
+# ENV SETUP
 # =====================
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") # 👈 เปลี่ยนชื่อตัวแปรให้ตรงกับ Gemini
 
 # =====================
-# OPENAI CLIENT
+# GEMINI SETUP
 # =====================
-client = OpenAI()
+# ตั้งค่า API Key
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+else:
+    print("❌ Warning: ไม่พบ GEMINI_API_KEY")
+
+# ตั้งค่า Model และ System Instruction (บุคลิกบอท)
+model = genai.GenerativeModel(
+    "gemini-1.5-flash",
+    system_instruction="คุณคือบอท Discord ภาษาไทย พูดจาเป็นกันเอง สุภาพ กวนนิดๆ ได้แต่ห้ามหยาบคาย ตอบสั้นกระชับ ไม่ต้องยาวมาก"
+)
 
 # =====================
-# INTENTS
+# BOT SETUP
 # =====================
 intents = discord.Intents.default()
 intents.message_content = True
-
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # =====================
@@ -35,7 +44,7 @@ bad_words = [
 ]
 
 # =====================
-# CLEAN TEXT
+# FUNCTIONS
 # =====================
 def clean_text(text: str) -> str:
     text = text.lower()
@@ -43,49 +52,29 @@ def clean_text(text: str) -> str:
     text = re.sub(r"[^ก-๙a-z0-9]", "", text)
     return text
 
-# =====================
-# ASK AI (FALLBACK)
-# =====================
-async def ask_ai(text: str) -> str:
+async def ask_gemini(text: str) -> str:
     try:
-        res = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "คุณคือบอท Discord ภาษาไทย "
-                        "พูดเป็นกันเอง สุภาพ ตอบตรงคำถาม "
-                        "ตอบสั้น กระชับ ห้ามใช้คำหยาบ"
-                    )
-                },
-                {"role": "user", "content": text}
-            ],
-            temperature=0.7,
-        )
-        return res.choices[0].message.content.strip()
+        # ส่งข้อความไปหา Gemini (ใช้ async เพื่อไม่ให้บอทค้าง)
+        response = await model.generate_content_async(text)
+        return response.text.strip()
     except Exception as e:
-        print("AI ERROR:", e)
-        return "ตอนนี้สมองเบลอ ขอพักแป๊บ 😵‍💫"
+        print(f"Gemini Error: {e}")
+        return "ตอนนี้สมองเบลอ ขอพักแป๊บ 😵‍💫 (Error จาก Google)"
 
 # =====================
 # EVENTS
 # =====================
 @bot.event
 async def on_ready():
-    print("---------------------------------")
-    print("DISCORD_TOKEN:", "OK" if DISCORD_TOKEN else "MISSING")
-    print("OPENAI_API_KEY:", "OK" if OPENAI_API_KEY else "MISSING")
-    print(f"🤖 Logged in as {bot.user}")
-    print("---------------------------------")
+    print(f"✅ Logged in as {bot.user}")
+    print(f"✅ Gemini Key: {'OK' if GEMINI_API_KEY else 'MISSING'}")
 
 @bot.event
 async def on_message(message):
-    # 1. ข้ามถ้าเป็นบอท
     if message.author.bot:
         return
 
-    # 2. ถ้าเป็นคำสั่ง prefix "!" ให้ข้ามไปทำงานส่วนคำสั่งเลย
+    # ถ้าเป็นคำสั่ง "!" ให้ทำงานคำสั่ง
     if message.content.startswith(bot.command_prefix):
         await bot.process_commands(message)
         return
@@ -93,45 +82,36 @@ async def on_message(message):
     raw = message.content
     content = clean_text(raw)
 
-    # 3. ตรวจคำหยาบ
+    # 1. เช็คคำหยาบ
     for w in bad_words:
         if w in content:
             await message.channel.send(f"พูดดี ๆ หน่อยนะ {message.author.mention} 😅")
             return
 
-    # 4. ตอบตาม Keyword
+    # 2. ตอบ Keyword
     if content.startswith("สวัสดี"):
-        await message.channel.send(f"สวัสดี {message.author.mention} 👋")
-
+        await message.channel.send(f"สวัสดีครับ {message.author.mention} 👋")
+    
     elif content in ["ดี", "ดีจ้า", "ดีครับ", "ดีค่ะ"]:
-        await message.channel.send(f"ดีจ้าา {message.author.mention} 😄")
-
-    elif content in ["hi", "hello"]:
-        await message.channel.send(f"hello {message.author.mention} 👋")
-
+        await message.channel.send(f"ดีจ้า {message.author.mention} 😄")
+        
     elif "ใครคือsun" in content:
         await message.channel.send(f"ก็คุณไง 😎 {message.author.mention}")
 
-    elif "ไม่รู้" in content:
-        await message.channel.send(f"ไม่รู้จริงเหรอ 🤔 {message.author.mention}")
-
-    # 5. ถ้าไม่ตรง Keyword ให้ถาม AI
+    # 3. ให้ Gemini ตอบ (ถ้าไม่เข้าเงื่อนไขบน)
     else:
         async with message.channel.typing():
-            ai_reply = await ask_ai(raw)
+            reply = await ask_gemini(raw)
             # ตัดคำถ้าเกิน 1900 ตัวอักษร
-            if len(ai_reply) > 1900:
-                ai_reply = ai_reply[:1900] + "..."
-            
-            await message.channel.send(f"{ai_reply} {message.author.mention}")
+            if len(reply) > 1900: reply = reply[:1900] + "..."
+            await message.channel.send(f"{reply} {message.author.mention}")
 
 # =====================
-# RUN
+# MAIN RUN
 # =====================
 if __name__ == "__main__":
     if DISCORD_TOKEN:
-        # เปิด Server ก่อนรันบอท
         server_on()
         bot.run(DISCORD_TOKEN)
     else:
-        print("❌ Error: ไม่พบ DISCORD_TOKEN ใน Environment Variables")
+        print("❌ Error: ไม่พบ DISCORD_TOKEN")
