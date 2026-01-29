@@ -286,9 +286,9 @@ fclose($f);
             f"{random.choice(fallback)} {message.author.mention}"
         )
 
-    # สำคัญ: ต้องมีบรรทัดนี้เพื่อให้ bot command อื่นๆ (ถ้ามีในอนาคต) ทำงานได้
+    
     await bot.process_commands(message)
 
-# ===== RUN =====
+
 server_on()
 bot.run(TOKEN)
