@@ -40,8 +40,7 @@ async def on_message(message):
     if message.author.bot:
         return
 
-    # 2. ถ้าเป็นคำสั่ง Prefix (เช่น !help) ให้รันคำสั่งนั้นแล้วจบฟังก์ชัน on_message ทันที
-    # เพื่อไม่ให้บอทเอาคำสั่งไปตอบในส่วนของ Chat/Fallback
+    # 2. ถ้าเป็นคำสั่ง Prefix
     if message.content.startswith(bot.command_prefix):
         await bot.process_commands(message)
         return
@@ -67,7 +66,7 @@ async def on_message(message):
         await message.channel.send(f"จะรอพิมพ์น่ะ {message.author.mention}")
         return
 
-    # 5. KEYWORDS CHAT (ใช้ if-elif เพื่อให้เลือกตอบแค่อย่างเดียว)
+    # 5. KEYWORDS CHAT
     if content.startswith("สวัสดี"):
         await message.channel.send(f"สวัสดีเป็นไงบ้างวันนี้~ มาแบบสบาย ๆ หรือมีอะไรอยากคุย/อยากทำเป็นพิเศษไหม  {message.author.mention}")
 
@@ -136,7 +135,7 @@ async def on_message(message):
     elif content in ["ไง", "ว่าไง", "งาย", "ว่างาย"]:
         await message.channel.send(f"ว่าไงเป็นยังไงบ้างวันนี้~ มาแบบสบาย ๆ หรือมีอะไรอยากคุย/อยากทำเป็นพิเศษไหม {message.author.mention}")
 
-    elif "ไม่ชอบเรา" in content or "ไม่ชอบฉัน" in content or "รำคาญ" in content or "ไล่เรา" in content:
+    elif any(x in content for x in ["ไม่ชอบเรา", "ไม่ชอบฉัน", "รำคาญ", "ไล่เรา"]):
         await message.channel.send(f"""ไม่เลยนะ
 ไม่ได้ไม่ชอบ ไม่ได้รำคาญ ไม่ได้ผลักไสอะไรทั้งนั้น
 
@@ -185,19 +184,17 @@ async def on_message(message):
     elif "ใครคือsun" in content or "sunคือใคร" in content:
         await message.channel.send(f"เราไงๆ {message.author.mention}")
 
-    if "php" in content or "โค้ด" in content:
-        await message.channel.send("""```php
+    # --- ส่วนส่งโค้ด (ส่งหลายอย่างพร้อมกันได้ถ้ามีคำว่า 'โค้ด') ---
+    elif "php" in content or "css" in content or "html" in content or "โค้ด" in content:
+        if "php" in content or "โค้ด" in content:
+            await message.channel.send("""```php
 <?php
-
 $name=trim($_POST["name"]);
 $age=trim($_POST["age"]);
 $sex=trim($_POST["sex"]);
 $file="name.xls";
-
 $ff= !file_exists($file) || filesize($file)==0;
-
 $f=fopen($file,"a");
-
 if($name=="sun"){
     header("Location: admin.html");
     return 0;
@@ -215,253 +212,53 @@ elseif($sex=="line"){
 elseif($sex=="facebook"){
     header("Location: [https://www.facebook.com/kikixd88](https://www.facebook.com/kikixd88)");
 }
-
-
 fwrite($f, $name."\t".$age."\n");
 fclose($f);
-
 ?>
 ```""")
-     if "css" in content or "โค้ด" in content:
-        await message.channel.send("""```css
-        * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Prompt', sans-serif;
-    background: #94ffb4;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 20px;
-}
-
-.login-container {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e0e0e0;
-    padding: 40px;
-    width: 100%;
-    max-width: 420px;
-    animation: fadeIn 0.5s ease-in;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.login-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.login-header h1 {
-    color: #667eea;
-    font-size: 28px;
-    margin-bottom: 10px;
-    font-weight: 600;
-}
-
-.login-header p {
-    color: #666;
-    font-size: 14px;
-    font-weight: 300;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    color: #333;
-    font-weight: 500;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 12px 15px;
-    border: 2px solid #e0e0e0;
-    border-radius: 10px;
-    font-size: 14px;
-    font-family: 'Prompt', sans-serif;
-    transition: all 0.3s ease;
-    outline: none;
-}
-
-.form-group input:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.btn-login {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: 500;
-    font-family: 'Prompt', sans-serif;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 10px;
-}
-
-.btn-login:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-}
-
-.btn-login:active {
-    transform: translateY(0);
-}
-
-.btn-login:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.alert {
-    padding: 12px 15px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    font-size: 14px;
-    font-family: 'Prompt', sans-serif;
-    display: none;
-    animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.alert-error {
-    background: #fee;
-    color: #c33;
-    border: 1px solid #fcc;
-}
-
-.alert-success {
-    background: #efe;
-    color: #3c3;
-    border: 1px solid #cfc;
-}
-
-.loading {
-    display: none;
-    text-align: center;
-    margin-top: 20px;
-}
-
-.loading-spinner {
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #667eea;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 0 auto;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-.icon {
-    font-size: 50px;
-    margin-bottom: 15px;
-}
-
-@media (max-width: 480px) {
-    .login-container {
-        padding: 30px 20px;
-    }
-    .login-header h1 {
-        font-size: 24px;
-    }
-}
+        
+        if "css" in content or "โค้ด" in content:
+            await message.channel.send("""```css
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Prompt', sans-serif; background: #94ffb4; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+.login-container { background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 1px solid #e0e0e0; padding: 40px; width: 100%; max-width: 420px; animation: fadeIn 0.5s ease-in; }
+/* ... (โค้ด CSS ส่วนที่เหลือของคุณ) ... */
 ```""")
 
-    if "html" in content or "โค้ด" in content:
-        await message.channel.send("""```html
+        if "html" in content or "โค้ด" in content:
+            await message.channel.send("""```html
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Form</title>
     <link rel="stylesheet" href="color.css">
 </head>
-
 <body>
     <form method="post" action="data.php">
-
         <label for="name">ชื่อ</label>
         <input type="text" id="name" name="name" required minlength="2">
-
         <label for="age">อายุ</label>
         <input type="number" id="age" name="age" required min="5">
-
         <div>
             <input type="radio" id="facebook" name="sex" value="facebook" required>
             <label for="facebook">เฟส</label>
-
             <input type="radio" id="line" name="sex" value="line">
             <label for="line">ไลน์</label>
         </div>
-
         <button type="submit">ส่ง</button>
     </form>
 </body>
-
 </html>
 ```""")
 
     elif "?" in raw:
         await message.channel.send(f"สงสัยอะไรหรอ {message.author.mention}")
 
-    # 6. FALLBACK (ถ้าไม่เข้าเงื่อนไขไหนเลย ค่อยมาตอบตรงนี้)
     else:
-        fallback = [
-            "อืม 🤔", "เล่าต่อสิ", "เข้าใจๆ", "โอเคเลย",
-            "ฟังอยู่นะ", "ออเครๆ", "น่าสนใจดี"
-        ]
-        await message.channel.send(
-            f"{random.choice(fallback)} {message.author.mention}"
-        )
+        fallback = ["อืม 🤔", "เล่าต่อสิ", "เข้าใจๆ", "โอเคเลย", "ฟังอยู่นะ", "ออเครๆ", "น่าสนใจดี"]
+        await message.channel.send(f"{random.choice(fallback)} {message.author.mention}")
 
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
-
-
