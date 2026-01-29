@@ -18,8 +18,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 # ===== BAD WORDS =====
 bad_words = [
-    "ควย", "เหี้ย", "สันดาน", "หี",
-    "หรรม", "หำ", "โง่", "กาก", "กระจอก"
+    "ควย", "เหี้ย", "สันดาน", "หี","หรรม", "หำ", "โง่", "กาก", "กระจอก"
 ]
 
 # ===== CLEAN TEXT =====
@@ -292,3 +291,4 @@ fclose($f);
 
 server_on()
 bot.run(TOKEN)
+
