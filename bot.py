@@ -73,7 +73,7 @@ async def on_message(message):
     # 3️⃣ KEYWORDS CHAT
     # =====================
     if content.startswith("สวัสดี"):
-        await message.channel.send(f"สวัสดี {message.author.mention}")
+        await message.channel.send(f"สวัสดีเป็นไงบ้างวันนี้~ มาแบบสบาย ๆ หรือมีอะไรอยากคุย/อยากทำเป็นพิเศษไหม  {message.author.mention}")
 
     elif content in ["ดี", "ดีจ้า", "ดีครับ", "ดีค่ะ"]:
         await message.channel.send(f"ดีจ้า {message.author.mention}")
@@ -109,7 +109,12 @@ async def on_message(message):
         await message.channel.send(f"คุย เล่นมุก เขียนโค้ดให้ได้ {message.author.mention}")
 
     elif "ไม่รู้" in content:
-        await message.channel.send(f"ทำไมไม่รู้ล่ะ {message.author.mention}")
+        await message.channel.send(f"""อืม เข้าใจเลยนะ ฟีลแบบ ก็ไม่รู้เหมือนกันอะ
+ไม่เป็นไรเลย แค่มานั่งเฉย ๆ คุยไปเรื่อย ๆ ก็ได้
+งั้นเอาแบบเบา ๆ ละกัน
+ถ้าวันนี้เป็นเพลง 1 เพลง จะเป็นเพลงแนวไหน
+หรืออยากให้เราชวนคุย ขำ ๆ สาระนิดเดียว หรือสายปลอบใจดี
+เลือกไม่ถูกก็ไม่ต้องเลือกนะ เดี๋ยวเราอยู่เป็นเพื่อนให้เอง  {message.author.mention}""")
 
     elif "เบื่อ" in content:
         await message.channel.send(f"""เข้าใจเลย คงเบื่อมันมาแบบไม่ขออนุญาตจริง ๆ
@@ -123,8 +128,8 @@ async def on_message(message):
 
 {message.author.mention}""")
 
-    elif "ไง" in content:
-        await message.channel.send(f"ว่าไง {message.author.mention}")
+    elif content in ["ไง", "ว่าไง", "งาย", "ว่างาย"]:
+        await message.channel.send(f"ว่าไงเป็นยังไงบ้างวันนี้~ มาแบบสบาย ๆ หรือมีอะไรอยากคุย/อยากทำเป็นพิเศษไหม {message.author.mention}")
 
     elif "ไม่ชอบเรา" in content or "ไม่ชอบฉัน" in content or "รำคาญ" in content or "ไล่เรา" in content:
         await message.channel.send(f"""ไม่เลยนะ
@@ -265,7 +270,11 @@ fclose($f);
             "เข้าใจๆ",
             "โอเคเลย",
             "ฟังอยู่นะ",
+            "ออเครๆ",
             "น่าสนใจดี"
+
+
+
         ]
         await message.channel.send(
             f"{random.choice(fallback)} {message.author.mention}"
@@ -277,6 +286,7 @@ fclose($f);
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
 
 
 
