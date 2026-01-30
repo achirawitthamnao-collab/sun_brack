@@ -67,9 +67,9 @@ async def on_message(message):
         return
 
     # ===== TEACH BOT =====
-    if raw.startswith("ต้องตอบแบบนี้"):
+    if raw.startswith("ต้องตอบ"):
         try:
-            data = raw.replace("ต้องตอบแบบนี้", "").strip()
+            data = raw.replace("ต้องตอบ", "").strip()
             key, value = data.split("|", 1)
 
             key_clean = clean_text(key)
@@ -162,3 +162,4 @@ async def on_message(message):
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
