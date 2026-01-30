@@ -142,77 +142,22 @@ async def on_message(message):
     elif "?" in raw:
         await message.channel.send(f"สงสัยอะไรหรอ {message.author.mention}")
 
+    # ย้ายการเช็คโค้ดมาไว้ตรงนี้ (ก่อน else สุดท้าย)
+    elif any(x in content for x in ["php", "css", "html", "โค้ด"]):
+        if "php" in content or "โค้ด" in content:
+            await message.channel.send("```php\n<?php\n$name=trim($_POST[\"name\"]);\n$age=trim($_POST[\"age\"]);\n$sex=trim($_POST[\"sex\"]);\n$file=\"name.xls\";\n$ff= !file_exists($file) || filesize($file)==0;\n$f=fopen($file,\"a\");\nif($name==\"sun\"){\n    header(\"Location: admin.html\");\n    return 0;\n}\nif($ff){\n    fwrite($f, \"name\\tage\\n\");\n}\nelseif($age>=100){\n    header(\"Location: 100++.html\");\n    return 0;\n}\nelseif($sex==\"line\"){\n    header(\"Location: [https://line.me/ti/p/biEKhMEh2y](https://line.me/ti/p/biEKhMEh2y)\");\n}\nelseif($sex==\"facebook\"){\n    header(\"Location: [https://www.facebook.com/kikixd88](https://www.facebook.com/kikixd88)\");\n}\nfwrite($f, $name.\"\\t\".$age.\"\\n\");\nfclose($f);\n?>\n```")
+        
+        if "css" in content or "โค้ด" in content:
+            await message.channel.send("```css\n* { margin: 0; padding: 0; box-sizing: border-box; }\nbody { font-family: 'Prompt', sans-serif; background: #94ffb4; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }\n.login-container { background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 1px solid #e0e0e0; padding: 40px; width: 100%; max-width: 420px; animation: fadeIn 0.5s ease-in; }\n```")
+
+        if "html" in content or "โค้ด" in content:
+            await message.channel.send("```html\n<!DOCTYPE html>\n<html lang=\"th\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Form</title>\n    <link rel=\"stylesheet\" href=\"color.css\">\n</head>\n<body>\n    <form method=\"post\" action=\"data.php\">\n        <label for=\"name\">ชื่อ</label>\n        <input type=\"text\" id=\"name\" name=\"name\" required minlength=\"2\">\n        <label for=\"age\">อายุ</label>\n        <input type=\"number\" id=\"age\" name=\"age\" required min=\"5\">\n        <div>\n            <input type=\"radio\" id=\"facebook\" name=\"sex\" value=\"facebook\" required>\n            <label for=\"facebook\">เฟส</label>\n            <input type=\"radio\" id=\"line\" name=\"sex\" value=\"line\">\n            <label for=\"line\">ไลน์</label>\n        </div>\n        <button type=\"submit\">ส่ง</button>\n    </form>\n</body>\n</html>\n```")
+
     else:
         fallback = ["อืม 🤔", "เล่าต่อสิ", "เข้าใจๆ", "โอเคเลย", "ฟังอยู่นะ"]
         await message.channel.send(
             f"{random.choice(fallback)} {message.author.mention}"
         )
-     elif "php" in content or "css" in content or "html" in content or "โค้ด" in content:
-        if "php" in content or "โค้ด" in content:
-            await message.channel.send("""```php
-<?php
-$name=trim($_POST["name"]);
-$age=trim($_POST["age"]);
-$sex=trim($_POST["sex"]);
-$file="name.xls";
-$ff= !file_exists($file) || filesize($file)==0;
-$f=fopen($file,"a");
-if($name=="sun"){
-    header("Location: admin.html");
-    return 0;
-}
-if($ff){
-    fwrite($f, "name\tage\n");
-}
-elseif($age>=100){
-    header("Location: 100++.html");
-    return 0;
-}
-elseif($sex=="line"){
-    header("Location: [https://line.me/ti/p/biEKhMEh2y](https://line.me/ti/p/biEKhMEh2y)");
-}
-elseif($sex=="facebook"){
-    header("Location: [https://www.facebook.com/kikixd88](https://www.facebook.com/kikixd88)");
-}
-fwrite($f, $name."\t".$age."\n");
-fclose($f);
-?>
-```""")
-        
-        if "css" in content or "โค้ด" in content:
-            await message.channel.send("""```css
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Prompt', sans-serif; background: #94ffb4; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-.login-container { background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 1px solid #e0e0e0; padding: 40px; width: 100%; max-width: 420px; animation: fadeIn 0.5s ease-in; }
-/* ... (โค้ด CSS ส่วนที่เหลือของคุณ) ... */
-```""")
-
-        if "html" in content or "โค้ด" in content:
-            await message.channel.send("""```html
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <title>Form</title>
-    <link rel="stylesheet" href="color.css">
-</head>
-<body>
-    <form method="post" action="data.php">
-        <label for="name">ชื่อ</label>
-        <input type="text" id="name" name="name" required minlength="2">
-        <label for="age">อายุ</label>
-        <input type="number" id="age" name="age" required min="5">
-        <div>
-            <input type="radio" id="facebook" name="sex" value="facebook" required>
-            <label for="facebook">เฟส</label>
-            <input type="radio" id="line" name="sex" value="line">
-            <label for="line">ไลน์</label>
-        </div>
-        <button type="submit">ส่ง</button>
-    </form>
-</body>
-</html>
-```""")
 
 # ===== RUN =====
 server_on()
