@@ -19,7 +19,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # ===== BAD WORDS =====
 bad_words = [
     "ควย", "เหี้ย", "สันดาน", "หี",
-    "หรรม", "หำ", "โง่", "กาก", "กระจอก"
+    "หรรม", "หำ", "โง่", "กาก", "กระจอก","เสือก"
 ]
 
 # ===== MEMORY CHAT =====
@@ -171,3 +171,4 @@ async def on_message(message):
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
