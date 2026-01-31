@@ -141,6 +141,19 @@ async def on_message(message):
 
     elif "ฝันดี" in content or "นอน" in content:
         await message.reply("ฝันดีน้าา ขอให้ตื่นมาพร้อมความสดใสครับ")
+    elif "ระบบคอมเม้น" in content:
+            await message.channel.send("""```php
+<?php
+if(isset($_POST["name"])){
+    $name = trim($_POST["name"]);
+    $file = "index.html";
+    $f = fopen($file,"a");
+    fwrite($f,$name . "<br>\n");
+    fclose($f);
+    header("Location: index.html");
+}
+?>
+```""")
 
     # --- ส่วนส่งโค้ด (เปลี่ยนเป็น Reply) ---
     elif any(x in content for x in ["php", "css", "html", "โค้ด"]):
@@ -218,3 +231,4 @@ body { font-family: 'Prompt', sans-serif; background: #94ffb4; display: flex; ju
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
