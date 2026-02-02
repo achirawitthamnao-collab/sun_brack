@@ -63,7 +63,7 @@ async def show_boosters(ctx):
     data = cursor.fetchall()
 
     if not data:
-        await ctx.send("ยังไม่มีประวัติคนบูสในความทรงจำของฉันเลย 🥺")
+        await ctx.send("เหม็น 🥺")
         return
 
     msg = "**🏆 รายชื่อคนใจดีที่เคยบูสเซิฟเวอร์**\n"
@@ -291,3 +291,4 @@ body { font-family: 'Prompt', sans-serif; background: #94ffb4; display: flex; ju
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
