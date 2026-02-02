@@ -185,6 +185,8 @@ async def on_message(message):
 
     elif "เบื่อ" in content:
         await message.reply("เบื่อเหรอ? ลองคุยเรื่องมุกกากๆ หาเกมเล่น หรือจะระบายให้เราฟังก็ได้นะ")
+    elif "เช้า" in content:
+        await message.reply("สดใสสิน่ะ")
 
     elif content in ["ไง", "ว่าไง", "งาย", "ว่างาย"]:
         await message.reply("ว่าไง~ สบายดีไหมวันนี้")
@@ -291,5 +293,6 @@ body { font-family: 'Prompt', sans-serif; background: #94ffb4; display: flex; ju
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
 
 
