@@ -3,7 +3,7 @@ from discord.ext import commands
 import os
 import re
 import random
-import sqlite3  # เพิ่มระบบฐานข้อมูล
+import sqlite3
 from dotenv import load_dotenv
 from myserver import server_on
 
@@ -12,7 +12,6 @@ load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 # ===== DATABASE SETUP =====
-# สร้างไฟล์ database.db ถ้ายังไม่มี
 db = sqlite3.connect("database.db")
 cursor = db.cursor()
 cursor.execute("""
@@ -24,7 +23,6 @@ CREATE TABLE IF NOT EXISTS responses (
 """)
 db.commit()
 
-# ฟังก์ชันโหลดข้อมูลจาก DB มาเก็บใน memory เพื่อให้บอทตอบไวขึ้น
 def load_custom_responses():
     cursor.execute("SELECT key_clean, value FROM responses")
     return dict(cursor.fetchall())
@@ -52,6 +50,17 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
+    
+    # 0. CHECK SERVER BOOST (เพิ่มส่วนนี้)
+    # ตรวจสอบว่าเป็นข้อความแจ้งเตือนการบูสหรือไม่
+    if message.type in (discord.MessageType.premium_guild_subscription, discord.MessageType.premium_guild_tier_1, discord.MessageType.premium_guild_tier_2, discord.MessageType.premium_guild_tier_3):
+        target_channel_id = 1465301405148381375 # ไอดีห้องที่ต้องการให้ส่ง
+        channel = bot.get_channel(target_channel_id)
+        
+        if channel:
+            await channel.send(f"ขอบคุณ {message.author.mention} ที่บูสเซิฟเวอร์ให้นะครับ! 🚀💖")
+        return # จบการทำงานทันที ไม่ต้องไปเช็คคำหยาบต่อ
+
     if message.author.bot:
         return
 
@@ -72,7 +81,7 @@ async def on_message(message):
             await message.channel.send(f"{message.author.mention} ใช้คำสุภาพหน่อยน้า", delete_after=5)
             return
 
-    # 2. TEACH BOT (ระบบจดจำลงฐานข้อมูล)
+    # 2. TEACH BOT
     if raw.startswith("ต้องตอบแบบนี้"):
         try:
             data = raw.replace("ต้องตอบแบบนี้", "").strip()
@@ -80,14 +89,12 @@ async def on_message(message):
             key_clean = clean_text(key)
             val_strip = value.strip()
 
-            # บันทึกลง Database
             cursor.execute(
                 "INSERT OR REPLACE INTO responses (key_clean, key_raw, value) VALUES (?, ?, ?)",
                 (key_clean, key.strip(), val_strip)
             )
             db.commit()
             
-            # อัปเดตตัวแปรในเครื่องทันที
             custom_responses[key_clean] = val_strip
 
             await message.reply(f"จำใส่สมองแล้วน้า 👍 ถ้าพิมพ์ว่า **{key.strip()}** จะตอบว่า\n> {val_strip}")
@@ -95,7 +102,7 @@ async def on_message(message):
             await message.reply("รูปแบบไม่ถูกน้า 😅 ลองใช้: `ต้องตอบแบบนี้ คำถาม|คำตอบ`")
         return
 
-    # 3. CUSTOM RESPONSES (ดึงจาก DB มาตอบ)
+    # 3. CUSTOM RESPONSES
     if content in custom_responses:
         await message.reply(custom_responses[content])
         return
@@ -105,7 +112,7 @@ async def on_message(message):
         await message.reply("จะรอพิมพ์น่ะ")
         return
 
-    # 5. KEYWORDS CHAT (Hardcoded)
+    # 5. KEYWORDS CHAT
     if content.startswith("สวัสดี"):
         await message.reply("สวัสดีเป็นไงบ้างวันนี้~ มีอะไรอยากคุยเป็นพิเศษไหม")
 
@@ -132,6 +139,7 @@ async def on_message(message):
 
     elif content in ["ไง", "ว่าไง", "งาย", "ว่างาย"]:
         await message.reply("ว่าไง~ สบายดีไหมวันนี้")
+        
     elif "ปวดขี้" in content:
         await message.reply("โอ๊ย เข้าใจเลย 😅ถ้าปวดมากก็รีบไปเลยนะ อย่าฝืน เดี๋ยวทรมานเปล่า ๆถ้าปวดบ่อยหรือปวดแปลก ๆ ลองเช็กนิดนึง:ดื่มน้ำพอไหม 💧กินเผ็ด/มัน/กาแฟไปหรือเปล่า ☕🌶️เครียดก็ทำให้ปวดได้นะเอาให้โล่งก่อน ค่อยกลับมาคุยต่อก็ได้ 😂ขอให้ภารกิจสำเร็จ ✨")
 
@@ -143,6 +151,7 @@ async def on_message(message):
 
     elif "ฝันดี" in content or "นอน" in content:
         await message.reply("ฝันดีน้าา ขอให้ตื่นมาพร้อมความสดใสครับ")
+        
     elif "ระบบคอมเม้น" in content:
             await message.channel.send("""```php
 <?php
@@ -157,7 +166,7 @@ if(isset($_POST["name"])){
 ?>
 ```""")
 
-    # --- ส่วนส่งโค้ด (เปลี่ยนเป็น Reply) ---
+    # --- ส่วนส่งโค้ด ---
     elif any(x in content for x in ["php", "css", "html", "โค้ด"]):
         if "php" in content or "โค้ด" in content:
             await message.channel.send("""```php
@@ -233,5 +242,3 @@ body { font-family: 'Prompt', sans-serif; background: #94ffb4; display: flex; ju
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
-
-
