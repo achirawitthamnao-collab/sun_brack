@@ -14,11 +14,22 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 # ===== DATABASE SETUP =====
 db = sqlite3.connect("database.db")
 cursor = db.cursor()
+
+# 1. ตารางคำตอบ (เดิม)
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS responses (
     key_clean TEXT PRIMARY KEY,
     key_raw TEXT,
     value TEXT
+)
+""")
+
+# 2. ตารางคนบูส (✅ เพิ่มใหม่)
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS boosters (
+    user_id TEXT PRIMARY KEY,
+    name TEXT,
+    count INTEGER DEFAULT 1
 )
 """)
 db.commit()
@@ -44,6 +55,25 @@ def clean_text(text: str) -> str:
     text = re.sub(r"[^ก-๙a-z0-9]", "", text)
     return text
 
+# ===== COMMANDS (✅ เพิ่มคำสั่งใหม่) =====
+@bot.command(name="hee")
+async def show_boosters(ctx):
+    # ดึงข้อมูลคนบูสจาก DB เรียงจากจำนวนครั้งมากสุด
+    cursor.execute("SELECT name, count FROM boosters ORDER BY count DESC")
+    data = cursor.fetchall()
+
+    if not data:
+        await ctx.send("ยังไม่มีประวัติคนบูสในความทรงจำของฉันเลย 🥺")
+        return
+
+    msg = "**🏆 รายชื่อคนใจดีที่เคยบูสเซิฟเวอร์**\n"
+    msg += "----------------------------------\n"
+    for i, (name, count) in enumerate(data, 1):
+        msg += f"อันดับ {i}. **{name}** (บูสไป {count} ครั้ง) 🚀\n"
+    
+    await ctx.send(msg)
+
+
 @bot.event
 async def on_ready():
     print(f"Bot ready as {bot.user}")
@@ -51,19 +81,38 @@ async def on_ready():
 @bot.event
 async def on_message(message):
     
-    # 0. CHECK SERVER BOOST (เพิ่มส่วนนี้)
-    # ตรวจสอบว่าเป็นข้อความแจ้งเตือนการบูสหรือไม่
+    # 0. CHECK SERVER BOOST & SAVE TO DB (✅ แก้ไขเพิ่มระบบบันทึก)
     if message.type in (discord.MessageType.premium_guild_subscription, discord.MessageType.premium_guild_tier_1, discord.MessageType.premium_guild_tier_2, discord.MessageType.premium_guild_tier_3):
-        target_channel_id = 1465301405148381375 # ไอดีห้องที่ต้องการให้ส่ง
+        
+        # --- ส่วนบันทึกลง Database ---
+        user_id = str(message.author.id)
+        username = message.author.name
+
+        # เช็คว่าเคยมีชื่อใน DB ไหม
+        cursor.execute("SELECT count FROM boosters WHERE user_id = ?", (user_id,))
+        result = cursor.fetchone()
+
+        if result:
+            # ถ้ามีแล้ว ให้บวกเพิ่ม 1 ครั้ง
+            new_count = result[0] + 1
+            cursor.execute("UPDATE boosters SET count = ?, name = ? WHERE user_id = ?", (new_count, username, user_id))
+        else:
+            # ถ้ายังไม่มี ให้สร้างใหม่
+            cursor.execute("INSERT INTO boosters (user_id, name, count) VALUES (?, ?, 1)", (user_id, username))
+        db.commit()
+        # -----------------------------
+
+        target_channel_id = 1465301405148381375
         channel = bot.get_channel(target_channel_id)
         
         if channel:
-            await channel.send(f"ขอบคุณ {message.author.mention} ที่บูสเซิฟเวอร์ให้นะครับ! 🚀💖")
-        return # จบการทำงานทันที ไม่ต้องไปเช็คคำหยาบต่อ
+            await channel.send(f"ขอบคุณ {message.author.mention} ที่บูสเซิฟเวอร์ให้นะครับ! 🚀💖 (บันทึกเป็นครั้งที่ {new_count if result else 1} แล้ว!)")
+        return 
 
     if message.author.bot:
         return
 
+    # ต้องมีบรรทัดนี้เพื่อให้คำสั่ง !คนบูส ทำงานได้ใน on_message
     if message.content.startswith(bot.command_prefix):
         await bot.process_commands(message)
         return
