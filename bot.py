@@ -5,7 +5,7 @@ import re
 import random
 import sqlite3
 from dotenv import load_dotenv
-from myserver import server_on
+# from myserver import server_on # เปิดใช้บรรทัดนี้ถ้ารันบน Replit หรือ Server ที่ต้อง keep alive
 
 # ===== LOAD ENV =====
 load_dotenv()
@@ -15,7 +15,7 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 db = sqlite3.connect("database.db")
 cursor = db.cursor()
 
-# 1. ตารางคำตอบ (เดิม)
+# 1. ตารางคำตอบ
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS responses (
     key_clean TEXT PRIMARY KEY,
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS responses (
 )
 """)
 
-# 2. ตารางคนบูส (✅ เพิ่มใหม่)
+# 2. ตารางคนบูส
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS boosters (
     user_id TEXT PRIMARY KEY,
@@ -35,14 +35,18 @@ CREATE TABLE IF NOT EXISTS boosters (
 db.commit()
 
 def load_custom_responses():
-    cursor.execute("SELECT key_clean, value FROM responses")
-    return dict(cursor.fetchall())
+    try:
+        cursor.execute("SELECT key_clean, value FROM responses")
+        return dict(cursor.fetchall())
+    except:
+        return {}
 
 custom_responses = load_custom_responses()
 
 # ===== INTENTS =====
 intents = discord.Intents.default()
 intents.message_content = True
+intents.members = True # แนะนำให้เปิดถ้าต้องการดึงชื่อสมาชิกแม่นยำขึ้น
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # ===== BAD WORDS =====
@@ -55,7 +59,7 @@ def clean_text(text: str) -> str:
     text = re.sub(r"[^ก-๙a-z0-9]", "", text)
     return text
 
-# ===== COMMANDS (✅ เพิ่มคำสั่งใหม่) =====
+# ===== COMMANDS =====
 @bot.command(name="hee")
 async def show_boosters(ctx):
     # ดึงข้อมูลคนบูสจาก DB เรียงจากจำนวนครั้งมากสุด
@@ -63,7 +67,7 @@ async def show_boosters(ctx):
     data = cursor.fetchall()
 
     if not data:
-        await message.delete()
+        await ctx.send("ยังไม่มีใครบูสเซิฟเวอร์เลย 🥺")
         return
 
     msg = "**🏆 รายชื่อคนใจดีที่เคยบูสเซิฟเวอร์**\n"
@@ -73,7 +77,6 @@ async def show_boosters(ctx):
     
     await ctx.send(msg)
 
-
 @bot.event
 async def on_ready():
     print(f"Bot ready as {bot.user}")
@@ -81,38 +84,42 @@ async def on_ready():
 @bot.event
 async def on_message(message):
     
-    # 0. CHECK SERVER BOOST & SAVE TO DB (✅ แก้ไขเพิ่มระบบบันทึก)
-    if message.type in (discord.MessageType.premium_guild_subscription, discord.MessageType.premium_guild_tier_1, discord.MessageType.premium_guild_tier_2, discord.MessageType.premium_guild_tier_3):
+    if message.author.bot:
+        return
+
+    # 0. CHECK SERVER BOOST & SAVE TO DB
+    # เช็คประเภทข้อความว่าเป็น System Message ของการ Boost หรือไม่
+    if message.type in (discord.MessageType.premium_guild_subscription, 
+                        discord.MessageType.premium_guild_tier_1, 
+                        discord.MessageType.premium_guild_tier_2, 
+                        discord.MessageType.premium_guild_tier_3):
         
-        # --- ส่วนบันทึกลง Database ---
         user_id = str(message.author.id)
         username = message.author.name
+        current_count = 1
 
         # เช็คว่าเคยมีชื่อใน DB ไหม
         cursor.execute("SELECT count FROM boosters WHERE user_id = ?", (user_id,))
         result = cursor.fetchone()
 
         if result:
-            # ถ้ามีแล้ว ให้บวกเพิ่ม 1 ครั้ง
-            new_count = result[0] + 1
-            cursor.execute("UPDATE boosters SET count = ?, name = ? WHERE user_id = ?", (new_count, username, user_id))
+            current_count = result[0] + 1
+            cursor.execute("UPDATE boosters SET count = ?, name = ? WHERE user_id = ?", (current_count, username, user_id))
         else:
-            # ถ้ายังไม่มี ให้สร้างใหม่
             cursor.execute("INSERT INTO boosters (user_id, name, count) VALUES (?, ?, 1)", (user_id, username))
         db.commit()
-        # -----------------------------
 
-        target_channel_id = 1465301405148381375
+        # แจ้งเตือนในห้องที่กำหนด
+        target_channel_id = 1465301405148381375 # ตรวจสอบ ID ห้องให้ถูกต้อง
         channel = bot.get_channel(target_channel_id)
         
         if channel:
-            await channel.send(f"ขอบคุณ {message.author.mention} ที่บูสเซิฟเวอร์ให้นะครับ! 🚀💖 (บันทึกเป็นครั้งที่ {new_count if result else 1} แล้ว!)")
+            await channel.send(f"ขอบคุณ {message.author.mention} ที่บูสเซิฟเวอร์ให้นะครับ! 🚀💖 (บันทึกเป็นครั้งที่ {current_count} แล้ว!)")
+        
+        # ข้อความ System ไม่ต้อง process ต่อ
         return 
 
-    if message.author.bot:
-        return
-
-    # ต้องมีบรรทัดนี้เพื่อให้คำสั่ง !คนบูส ทำงานได้ใน on_message
+    # ให้คำสั่ง ! ทำงาน
     if message.content.startswith(bot.command_prefix):
         await bot.process_commands(message)
         return
@@ -134,6 +141,9 @@ async def on_message(message):
     if raw.startswith("ต้องตอบแบบนี้"):
         try:
             data = raw.replace("ต้องตอบแบบนี้", "").strip()
+            if "|" not in data:
+                raise ValueError("Format Error")
+                
             key, value = data.split("|", 1)
             key_clean = clean_text(key)
             val_strip = value.strip()
@@ -145,9 +155,8 @@ async def on_message(message):
             db.commit()
             
             custom_responses[key_clean] = val_strip
-
             await message.reply(f"จำใส่สมองแล้วน้า 👍 ถ้าพิมพ์ว่า **{key.strip()}** จะตอบว่า\n> {val_strip}")
-        except Exception as e:
+        except Exception:
             await message.reply("รูปแบบไม่ถูกน้า 😅 ลองใช้: `ต้องตอบแบบนี้ คำถาม|คำตอบ`")
         return
 
@@ -156,7 +165,7 @@ async def on_message(message):
         await message.reply(custom_responses[content])
         return
 
-    # 4. RANDOM LETTER CHECK
+    # 4. RANDOM LETTER CHECK (ดักพวกพิมพ์ตัวเดียวมากวน)
     if re.fullmatch(r"[ก-ฮa-zA-Z]", raw):
         await message.reply("จะรอพิมพ์น่ะ")
         return
@@ -170,8 +179,9 @@ async def on_message(message):
 
     elif "คิดถึง" in content:
         await message.reply("คิดถึงเหมือนกันนะ 🌱 ช่วงนี้เป็นยังไงบ้าง เหนื่อยไหม เรานั่งฟังได้เสมอ 🙂")
+        
     elif "ฝันร้าย" in content:
-        await message.raply("โอ๋ๆ")
+        await message.reply("โอ๋ๆ ไม่เป็นไรนะ มันผ่านไปแล้ว 🫂") # แก้ raply -> reply
 
     elif "cry" in content:
         await message.reply("เฮ้… 🫂 ถ้ามันหนักมากก็ร้องออกมาได้เลยนะ เราอยู่ตรงนี้เป็นเพื่อนเอง 💙")
@@ -187,6 +197,7 @@ async def on_message(message):
 
     elif "เบื่อ" in content:
         await message.reply("เบื่อเหรอ? ลองคุยเรื่องมุกกากๆ หาเกมเล่น หรือจะระบายให้เราฟังก็ได้นะ")
+        
     elif "เช้า" in content:
         await message.reply("สดใสสิน่ะ")
 
@@ -194,7 +205,7 @@ async def on_message(message):
         await message.reply("ว่าไง~ สบายดีไหมวันนี้")
         
     elif "ปวดขี้" in content:
-        await message.reply("โอ๊ย เข้าใจเลย 😅ถ้าปวดมากก็รีบไปเลยนะ อย่าฝืน เดี๋ยวทรมานเปล่า ๆถ้าปวดบ่อยหรือปวดแปลก ๆ ลองเช็กนิดนึง:ดื่มน้ำพอไหม 💧กินเผ็ด/มัน/กาแฟไปหรือเปล่า ☕🌶️เครียดก็ทำให้ปวดได้นะเอาให้โล่งก่อน ค่อยกลับมาคุยต่อก็ได้ 😂ขอให้ภารกิจสำเร็จ ✨")
+        await message.reply("โอ๊ย เข้าใจเลย 😅 ถ้าปวดมากก็รีบไปเลยนะ อย่าฝืน เดี๋ยวทรมานเปล่าๆ\nถ้าปวดบ่อยหรือปวดแปลกๆ ลองเช็กนิดนึง:\n- ดื่มน้ำพอไหม 💧\n- กินเผ็ด/มัน/กาแฟไปหรือเปล่า ☕🌶️\nเอาให้โล่งก่อน ค่อยกลับมาคุยต่อก็ได้ 😂 ขอให้ภารกิจสำเร็จ ✨")
 
     elif any(x in content for x in ["ไม่ชอบเรา", "รำคาญ", "ไล่เรา"]):
         await message.reply("ไม่เคยรำคาญเลยนะ สบายใจได้ เรายินดีที่มีนายอยู่ตรงนี้เสมอ 😊")
@@ -206,13 +217,13 @@ async def on_message(message):
         await message.reply("ฝันดีน้าา ขอให้ตื่นมาพร้อมความสดใสครับ")
         
     elif "ระบบคอมเม้น" in content:
-            await message.channel.send("""```php
+        await message.channel.send("""```php
 <?php
 if(isset($_POST["name"])){
     $name = trim($_POST["name"]);
     $file = "index.html";
     $f = fopen($file,"a");
-    fwrite($f,$name . "<br>\n");
+    fwrite($f,$name . "<br>\\n");
     fclose($f);
     header("Location: index.html");
 }
@@ -228,26 +239,14 @@ $name=trim($_POST["name"]);
 $age=trim($_POST["age"]);
 $sex=trim($_POST["sex"]);
 $file="name.xls";
-$ff= !file_exists($file) || filesize($file)==0;
+
 $f=fopen($file,"a");
 if($name=="sun"){
     header("Location: admin.html");
-    return 0;
+    exit();
 }
-if($ff){
-    fwrite($f, "name\tage\n");
-}
-elseif($age>=100){
-    header("Location: 100++.html");
-    return 0;
-}
-elseif($sex=="line"){
-    header("Location: [https://line.me/ti/p/biEKhMEh2y](https://line.me/ti/p/biEKhMEh2y)");
-}
-elseif($sex=="facebook"){
-    header("Location: [https://www.facebook.com/kikixd88](https://www.facebook.com/kikixd88)");
-}
-fwrite($f, $name."\t".$age."\n");
+// ตัวอย่าง Logic
+fwrite($f, $name."\\t".$age."\\n");
 fclose($f);
 ?>
 ```""")
@@ -255,8 +254,7 @@ fclose($f);
             await message.channel.send("""```css
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Prompt', sans-serif; background: #94ffb4; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-.login-container { background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 1px solid #e0e0e0; padding: 40px; width: 100%; max-width: 420px; animation: fadeIn 0.5s ease-in; }
-/* ... (โค้ด CSS ส่วนที่เหลือของคุณ) ... */
+.login-container { background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 1px solid #e0e0e0; padding: 40px; width: 100%; max-width: 420px; }
 ```""")
         if "html" in content or "โค้ด" in content:
              await message.channel.send("""```html
@@ -269,16 +267,8 @@ body { font-family: 'Prompt', sans-serif; background: #94ffb4; display: flex; ju
 </head>
 <body>
     <form method="post" action="data.php">
-        <label for="name">ชื่อ</label>
-        <input type="text" id="name" name="name" required minlength="2">
-        <label for="age">อายุ</label>
-        <input type="number" id="age" name="age" required min="5">
-        <div>
-            <input type="radio" id="facebook" name="sex" value="facebook" required>
-            <label for="facebook">เฟส</label>
-            <input type="radio" id="line" name="sex" value="line">
-            <label for="line">ไลน์</label>
-        </div>
+        <label>ชื่อ</label> <input type="text" name="name" required>
+        <label>อายุ</label> <input type="number" name="age" required>
         <button type="submit">ส่ง</button>
     </form>
 </body>
@@ -290,12 +280,10 @@ body { font-family: 'Prompt', sans-serif; background: #94ffb4; display: flex; ju
 
     else:
         fallback = ["อืม 🤔", "เล่าต่อสิ", "เข้าใจๆ", "โอเคเลย", "ฟังอยู่นะ", "ออเครๆ"]
-        await message.reply(random.choice(fallback))
+        # สุ่มตอบเฉพาะบางครั้งเพื่อไม่ให้รกเกินไป (Optional)
+        if random.random() < 0.3: 
+            await message.reply(random.choice(fallback))
 
 # ===== RUN =====
-server_on()
+# server_on() # เรียกใช้ถ้ามีไฟล์ myserver.py
 bot.run(TOKEN)
-
-
-
-
