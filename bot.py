@@ -181,7 +181,7 @@ async def on_message(message):
         await message.reply("คิดถึงเหมือนกันนะ 🌱 ช่วงนี้เป็นยังไงบ้าง เหนื่อยไหม เรานั่งฟังได้เสมอ 🙂")
         
     elif "ฝันร้าย" in content:
-        await message.reply("โอ๋ๆ ไม่เป็นไรนะ มันผ่านไปแล้ว 🫂") # แก้ raply -> reply
+        await message.reply("โอ๋ๆ ไม่เป็นไรนะ มันผ่านไปแล้ว 🫂")
 
     elif "cry" in content:
         await message.reply("เฮ้… 🫂 ถ้ามันหนักมากก็ร้องออกมาได้เลยนะ เราอยู่ตรงนี้เป็นเพื่อนเอง 💙")
