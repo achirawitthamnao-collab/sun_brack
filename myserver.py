@@ -1,17 +1,14 @@
-# ไฟล์: myserver.py
 from flask import Flask
 from threading import Thread
 
-app = Flask('')
+app = Flask(__name__)
 
-@app.route('/')
+@app.route("/")
 def home():
-    return "Bot is running! | สถานะ: ปกติ"
+    return "OK", 200
 
 def run():
-    # Render ต้องการให้รันบน 0.0.0.0
-    app.run(host='0.0.0.0', port=8080)
+    app.run(host="0.0.0.0", port=10000)
 
 def server_on():
-    t = Thread(target=run)
-    t.start()
+    Thread(target=run).start()
