@@ -1,4 +1,4 @@
-แบบนี้หรอimport discord
+import discord
 from discord.ext import commands
 import os
 import re
@@ -161,3 +161,4 @@ async def on_message(message):
 # ===== RUN =====
 server_on()
 bot.run(TOKEN)
+
