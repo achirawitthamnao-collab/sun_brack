@@ -5,8 +5,9 @@ import re
 from dotenv import load_dotenv
 
 # ===== LOAD ENV =====
+# พยายามโหลดจากไฟล์ .env (ถ้ามี) แต่ถ้าอยู่บน Render ระบบจะใช้ Environment Variables โดยตรง
 load_dotenv()
-TOKEN = os.getenv("DISCORD_TOKEN")
+TOKEN = os.environ.get("DISCORD_TOKEN")
 
 # ===== INTENTS =====
 intents = discord.Intents.default()
@@ -34,6 +35,11 @@ async def on_message(message):
     if message.author.bot:
         return
 
+    # เช็คว่า TOKEN มีค่าหรือไม่เพื่อป้องกัน Error ตอนรัน
+    if TOKEN is None:
+        print("❌ Error: ไม่พบ DISCORD_TOKEN ใน Environment Variables")
+        return
+
     content_raw = message.content.strip()
     content_clean = clean_text(content_raw)
 
@@ -42,15 +48,12 @@ async def on_message(message):
         if word in content_clean:
             try:
                 await message.delete()
-                await message.channel.send(f"⚠️ {message.author.mention} ใช้คำสุภาพหน่อยน้า (ข้อความนี้จะถูกลบใน 5 วิ)", delete_after=5)
-            except discord.Forbidden:
-                print("❌ บอทไม่มีสิทธิ์ลบข้อความ (Permissions Error)")
-            except Exception as e:
-                print(f"❌ เกิดข้อผิดพลาด: {e}")
+                await message.channel.send(f"⚠️ {message.author.mention} ใช้คำสุภาพหน่อยน้า", delete_after=5)
+            except:
+                pass 
             return # เจอคำหยาบแล้วหยุดทำงานส่วนอื่นทันที
 
-    # --- 2. ระบบแจกโค้ด ---
-    # เช็คว่ามีคำสำคัญในข้อความหรือไม่
+    # --- 2. ระบบแจกโค้ด (PHP, HTML, CSS) ---
     keywords = ["โค้ด", "php", "html", "css"]
     if any(key in content_clean for key in keywords):
         
@@ -69,8 +72,11 @@ async def on_message(message):
             html_code = "```html\n<!DOCTYPE html>\n<html>\n<head>\n  <title>My Page</title>\n</head>\n<body>\n  <form method='post' action='save.php'>\n    <input type='text' name='name' placeholder='ใส่ชื่อที่นี่'>\n    <button type='submit'>ส่งข้อมูล</button>\n  </form>\n</body>\n</html>\n```"
             await message.channel.send(f"🌐 **ตัวอย่าง HTML Code:**\n{html_code}")
 
-    # ให้คำสั่ง prefix (ถ้ามี) ทำงานปกติ
+    # ให้คำสั่ง prefix ทำงานปกติ (ถ้ามี)
     await bot.process_commands(message)
 
 # ===== RUN =====
-bot.run(TOKEN)
+if TOKEN:
+    bot.run(TOKEN)
+else:
+    print("❌ บอทไม่ทำงานเพราะไม่มี Token")
