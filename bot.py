@@ -2,11 +2,9 @@ import discord
 from discord.ext import commands
 import os
 import re
-from dotenv import load_dotenv
 
-# ===== LOAD ENV =====
-# พยายามโหลดจากไฟล์ .env (ถ้ามี) แต่ถ้าอยู่บน Render ระบบจะใช้ Environment Variables โดยตรง
-load_dotenv()
+# ===== TOKEN SETUP =====
+# พยายามดึงจาก Environment Variable ของ Render โดยตรง
 TOKEN = os.environ.get("DISCORD_TOKEN")
 
 # ===== INTENTS =====
@@ -15,10 +13,8 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # ===== CONFIGURATION =====
-# รายชื่อคำหยาบ
 bad_words = ["ควย", "เหี้ย", "สันดาน", "หี", "หรรม", "หำ", "โง่", "กาก", "กระจอก"]
 
-# ฟังก์ชันทำความสะอาดข้อความเพื่อเช็คคำหยาบ
 def clean_text(text: str) -> str:
     text = text.lower()
     text = re.sub(r"\s+", "", text)
@@ -31,19 +27,13 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    # ไม่ตอบโต้กับบอทด้วยกันเอง
     if message.author.bot:
-        return
-
-    # เช็คว่า TOKEN มีค่าหรือไม่เพื่อป้องกัน Error ตอนรัน
-    if TOKEN is None:
-        print("❌ Error: ไม่พบ DISCORD_TOKEN ใน Environment Variables")
         return
 
     content_raw = message.content.strip()
     content_clean = clean_text(content_raw)
 
-    # --- 1. ระบบตรวจจับและลบคำหยาบ ---
+    # --- 1. ระบบลบคำหยาบ ---
     for word in bad_words:
         if word in content_clean:
             try:
@@ -51,32 +41,26 @@ async def on_message(message):
                 await message.channel.send(f"⚠️ {message.author.mention} ใช้คำสุภาพหน่อยน้า", delete_after=5)
             except:
                 pass 
-            return # เจอคำหยาบแล้วหยุดทำงานส่วนอื่นทันที
+            return
 
-    # --- 2. ระบบแจกโค้ด (PHP, HTML, CSS) ---
+    # --- 2. ระบบแจกโค้ด ---
     keywords = ["โค้ด", "php", "html", "css"]
     if any(key in content_clean for key in keywords):
-        
-        # ส่งโค้ด PHP
         if "php" in content_clean or "โค้ด" in content_clean:
-            php_code = "```php\n<?php\n$name = trim($_POST['name']);\n$file = 'data.txt';\n$f = fopen($file, 'a');\nfwrite($f, $name . \"\\n\");\nfclose($f);\necho 'บันทึกสำเร็จ!';\n?>\n```"
-            await message.channel.send(f"📂 **ตัวอย่าง PHP Code:**\n{php_code}")
-
-        # ส่งโค้ด CSS
+            await message.channel.send("📂 **PHP Code:**\n```php\n<?php echo 'Hello World'; ?>\n```")
         if "css" in content_clean or "โค้ด" in content_clean:
-            css_code = "```css\n* { margin: 0; padding: 0; box-sizing: border-box; }\nbody {\n  font-family: 'Prompt', sans-serif;\n  background-color: #f4f4f4;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  height: 100vh;\n}\n```"
-            await message.channel.send(f"🎨 **ตัวอย่าง CSS Code:**\n{css_code}")
-
-        # ส่งโค้ด HTML
+            await message.channel.send("🎨 **CSS Code:**\n```css\nbody { background: #f4f4f4; }\n```")
         if "html" in content_clean or "โค้ด" in content_clean:
-            html_code = "```html\n<!DOCTYPE html>\n<html>\n<head>\n  <title>My Page</title>\n</head>\n<body>\n  <form method='post' action='save.php'>\n    <input type='text' name='name' placeholder='ใส่ชื่อที่นี่'>\n    <button type='submit'>ส่งข้อมูล</button>\n  </form>\n</body>\n</html>\n```"
-            await message.channel.send(f"🌐 **ตัวอย่าง HTML Code:**\n{html_code}")
+            await message.channel.send("🌐 **HTML Code:**\n```html\n<h1>Hello</h1>\n```")
 
-    # ให้คำสั่ง prefix ทำงานปกติ (ถ้ามี)
     await bot.process_commands(message)
 
-# ===== RUN =====
-if TOKEN:
-    bot.run(TOKEN)
-else:
-    print("❌ บอทไม่ทำงานเพราะไม่มี Token")
+# ===== START BOT =====
+if __name__ == "__main__":
+    if TOKEN:
+        print("🚀 กำลังเริ่มการทำงานของบอท...")
+        bot.run(TOKEN)
+    else:
+        # ถ้าขึ้นข้อความนี้ใน Log แสดงว่าใน Render ยังตั้งค่าไม่ถูก
+        print("❌ FATAL ERROR: หา DISCORD_TOKEN ไม่พบใน Environment Variables!")
+        print("กรุณาตรวจสอบหน้า Environment ใน Render ว่าสะกด 'DISCORD_TOKEN' ถูกต้องและไม่มีช่องว่าง")
