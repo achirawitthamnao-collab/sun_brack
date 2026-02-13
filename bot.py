@@ -4,79 +4,73 @@ import os
 import re
 from dotenv import load_dotenv
 
-# ===== 1. LOAD ENV & CONFIG =====
+# ===== LOAD ENV =====
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
-# ===== 2. INTENTS =====
+# ===== INTENTS =====
 intents = discord.Intents.default()
-intents.message_content = True  # สำคัญมาก: ต้องเปิดใน Discord Developer Portal ด้วย
+intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# ===== 3. BAD WORDS LIST =====
+# ===== CONFIGURATION =====
+# รายชื่อคำหยาบ
 bad_words = ["ควย", "เหี้ย", "สันดาน", "หี", "หรรม", "หำ", "โง่", "กาก", "กระจอก"]
 
-# ===== 4. CLEAN TEXT FUNCTION =====
+# ฟังก์ชันทำความสะอาดข้อความเพื่อเช็คคำหยาบ
 def clean_text(text: str) -> str:
     text = text.lower()
-    text = re.sub(r"\s+", "", text)  # ลบช่องว่าง
-    text = re.sub(r"[^ก-๙a-z0-9]", "", text)  # ลบอักขระพิเศษ
+    text = re.sub(r"\s+", "", text)
+    text = re.sub(r"[^ก-๙a-z0-9]", "", text)
     return text
 
-# ===== 5. EVENTS =====
 @bot.event
 async def on_ready():
     print(f"✅ บอทออนไลน์แล้วในชื่อ: {bot.user}")
 
 @bot.event
 async def on_message(message):
-    # ป้องกันบอทตอบโต้ตัวเอง
+    # ไม่ตอบโต้กับบอทด้วยกันเอง
     if message.author.bot:
         return
 
-    # เตรียมข้อความสำหรับการเช็ค
-    raw_content = message.content.strip()
-    clean_content = clean_text(raw_content)
+    content_raw = message.content.strip()
+    content_clean = clean_text(content_raw)
 
-    # --- ส่วนที่ 1: ระบบลบคำไม่สุภาพ ---
+    # --- 1. ระบบตรวจจับและลบคำหยาบ ---
     for word in bad_words:
-        if word in clean_content:
+        if word in content_clean:
             try:
                 await message.delete()
-                await message.channel.send(f"⚠️ {message.author.mention} ใช้คำสุภาพหน่อยน้า", delete_after=5)
+                await message.channel.send(f"⚠️ {message.author.mention} ใช้คำสุภาพหน่อยน้า (ข้อความนี้จะถูกลบใน 5 วิ)", delete_after=5)
+            except discord.Forbidden:
+                print("❌ บอทไม่มีสิทธิ์ลบข้อความ (Permissions Error)")
             except Exception as e:
-                print(f"❌ ไม่สามารถลบข้อความได้ (ขาด Permission): {e}")
-            return # หยุดการทำงานทันทีถ้าเจอคำหยาบ
+                print(f"❌ เกิดข้อผิดพลาด: {e}")
+            return # เจอคำหยาบแล้วหยุดทำงานส่วนอื่นทันที
 
-    # --- ส่วนที่ 2: ระบบส่งโค้ด (PHP, CSS, HTML) ---
-    keywords = ["php", "css", "html", "โค้ด"]
-    
-    # เช็คว่ามี keyword ใดอยู่ในข้อความหรือไม่
-    if any(x in clean_content for x in keywords):
+    # --- 2. ระบบแจกโค้ด ---
+    # เช็คว่ามีคำสำคัญในข้อความหรือไม่
+    keywords = ["โค้ด", "php", "html", "css"]
+    if any(key in content_clean for key in keywords):
         
         # ส่งโค้ด PHP
-        if "php" in clean_content or "โค้ด" in clean_content:
-            php_code = "```php\n<?php\n$name=trim($_POST['name']);\n$file='data.txt';\n$f=fopen($file,'a');\nfwrite($f, $name.\"\\n\");\nfclose($f);\n?>\n```"
-            await message.channel.send(f"**PHP Code Example:**\n{php_code}")
+        if "php" in content_clean or "โค้ด" in content_clean:
+            php_code = "```php\n<?php\n$name = trim($_POST['name']);\n$file = 'data.txt';\n$f = fopen($file, 'a');\nfwrite($f, $name . \"\\n\");\nfclose($f);\necho 'บันทึกสำเร็จ!';\n?>\n```"
+            await message.channel.send(f"📂 **ตัวอย่าง PHP Code:**\n{php_code}")
 
         # ส่งโค้ด CSS
-        if "css" in clean_content or "โค้ด" in clean_content:
-            css_code = "```css\nbody {\n  font-family: 'Prompt', sans-serif;\n  background: #f0f0f0;\n  display: flex;\n  justify-content: center;\n}\n```"
-            await message.channel.send(f"**CSS Code Example:**\n{css_code}")
+        if "css" in content_clean or "โค้ด" in content_clean:
+            css_code = "```css\n* { margin: 0; padding: 0; box-sizing: border-box; }\nbody {\n  font-family: 'Prompt', sans-serif;\n  background-color: #f4f4f4;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  height: 100vh;\n}\n```"
+            await message.channel.send(f"🎨 **ตัวอย่าง CSS Code:**\n{css_code}")
 
         # ส่งโค้ด HTML
-        if "html" in clean_content or "โค้ด" in clean_content:
-            html_code = "```html\n<!DOCTYPE html>\n<html>\n<head><title>Page</title></head>\n<body>\n  <form method='post' action='save.php'>\n    <input type='text' name='name'>\n    <button type='submit'>Send</button>\n  </form>\n</body>\n</html>\n```"
-            await message.channel.send(f"**HTML Code Example:**\n{html_code}")
+        if "html" in content_clean or "โค้ด" in content_clean:
+            html_code = "```html\n<!DOCTYPE html>\n<html>\n<head>\n  <title>My Page</title>\n</head>\n<body>\n  <form method='post' action='save.php'>\n    <input type='text' name='name' placeholder='ใส่ชื่อที่นี่'>\n    <button type='submit'>ส่งข้อมูล</button>\n  </form>\n</body>\n</html>\n```"
+            await message.channel.send(f"🌐 **ตัวอย่าง HTML Code:**\n{html_code}")
 
-        return  # หยุดการทำงานเพื่อไม่ให้ซ้ำซ้อน
-
-    # --- ส่วนที่ 3: ประมวลผลคำสั่ง Prefix (!...) ---
+    # ให้คำสั่ง prefix (ถ้ามี) ทำงานปกติ
     await bot.process_commands(message)
 
-# ===== 6. RUN BOT =====
-if __name__ == "__main__":
-    if TOKEN:
-        bot.run(TOKEN)
-    else:
-        print("❌ ไม่พบ DISCORD_TOKEN ในไฟล์ .env")
+# ===== RUN =====
+bot.run(TOKEN)
